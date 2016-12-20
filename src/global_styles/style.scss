@@ -1,0 +1,31 @@
+// body {
+//   background: yellow;
+// }
+//
+.domain {
+  stroke: grey;
+}
+
+.grid .tick {
+    stroke: lightgrey;
+    opacity: 0.2;
+}
+
+.grid path {
+      stroke-width: 0;
+}
+
+#impact {
+  float: left;
+  width: 120px;
+}
+
+#aggr {
+  float: left;
+  width: 160px;
+}
+
+#aggr2 {
+  float: left;
+  width: 170px;
+}
