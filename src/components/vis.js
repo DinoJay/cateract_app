@@ -88,18 +88,17 @@ function create(svg, rawData) {
 
   yDate.domain(d3.extent(data, d => d.date));
 
+  console.log('data', data);
   protColor.domain(keys);
-  radDose.domain([0, 1]);
+  radDose.domain(d3.extent(data, d => d.radiation[0].value));
 
   // stack
-
   (function() {
     const stack = d3.stack()
                     .keys(keys)
                     .value((a, key) => a.protection.find(b => b.key === key).value);
 
     const stacked = stack(data);
-    console.log('stacked', stacked);
     // right
     const barWidth = d3.scaleLinear()
       .rangeRound([0, (width / 2) - (centerMargin / 2)])
@@ -125,16 +124,18 @@ function create(svg, rawData) {
       .data(data)
       .enter()
       .append('g')
-        .attr('transform', d => `translate(${width + (centerMargin / 2)}, ${yBand(d.date)})`);
+        .attr('transform', d => `translate(${width + (centerMargin / 2)}, ${yDate(d.date)})`);
 
     labelCont.append('path')
         .attr('d', d => d3.symbol().type(symbols(d.procedure))())
-        .attr('transform', `translate(${(20)}, ${(yBand.bandwidth() / 2) - 5})`)
+        // .attr('transform', `translate(${(20)}, ${(yBand.bandwidth() / 2) - 5})`)
+        .attr('transform', `translate(${(20)}, ${7})`)
         .attr('dx', 4)
         .attr('fill', 'grey');
 
     labelCont.append('text')
-        .attr('transform', `translate(${(40)}, ${yBand.bandwidth() / 2})`)
+        // .attr('transform', `translate(${(40)}, ${yBand.bandwidth() / 2})`)
+        .attr('transform', `translate(${(40)}, ${10 / 2})`)
     //     .attr('alignment-baseline', 'middle')
         .text(d => d.procedure);
     //     .attr('dy', yBand.bandwidth() / 2)
@@ -150,17 +151,27 @@ function create(svg, rawData) {
       .data(d => d)
       .enter()
       .append('rect')
-        .attr('class', d => d.data.key)
-        .attr('y', d => yBand(d.data.date))
+        // .attr('class', d => console.log(d))
+        // .attr('y', d => yBand(d.data.date))
+        .attr('y', d => yDate(d.data.date) - (height / 19) / 2)
         .attr('x', d => (width / 2) + (centerMargin / 2) + barWidth(d[0]))
         .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
-        .attr('height', yBand.bandwidth())
+        // .attr('height', yBand.bandwidth())
+        // TODO: bandwidth
+        .attr('height', height / 19 - 5)
         // .attr('height', 10)
         // .style('fill', d => protColor(d.data.protection.find(e => d[1] === e.value).value))
-        .style('fill', function() {
-          const parKey = d3.select(this.parentNode).attr('class');
-          console.log('parKey', parKey);
+        .style('fill', function(d) {
           return protColor(d3.select(this.parentNode).datum().key);
+        })
+        .on('mouseover', function() {
+          // console.log('event', d3.event.transform);
+          d3.select(this)
+          .attr('y', d => yDate(d.data.date) - (height / 19) / 2)
+          .transition(2000)
+          .attr('height', height / 19 - 5)
+          .attr('height', 100)
+          .attr('y', d => yDate(d.data.date) - 100 / 2);
         });
       //   .style('stroke', 'black')
       //   .on('click', function(d) {
@@ -169,7 +180,7 @@ function create(svg, rawData) {
 
     gRight.append('g')
         .attr('class', 'axis axis--x')
-        // .attr('transform', `translate(0,${height})`)
+        .attr('transform', `translate(0,${-40})`)
         .call(d3.axisTop(d3.scaleLinear()
                 .rangeRound([(width / 2) + (centerMargin / 2), width])
                 .domain([0, 1])
@@ -207,7 +218,6 @@ function create(svg, rawData) {
     //             .tickFormat('')
     //         );
 
-    console.log('data', data.map(d => d.radiation));
     const radBar = gLeft.selectAll('.radBar')
       .data(data)
       .enter()
@@ -221,8 +231,12 @@ function create(svg, rawData) {
       .attr('y', function() {
         return yBand(d3.select(this.parentNode).datum().date);
       })
+      .attr('y', function() {
+        return yDate(d3.select(this.parentNode).datum().date);
+      })
         .attr('width', d => xRadLeft(0) - xRadLeft(d.value))
-        .attr('height', yBand.bandwidth())
+        // .attr('height', yBand.bandwidth())
+        .attr('height', 10)
         // .attr('fill', d => radDose(d.value))
         .style('fill', (d) => {
           if (!d.used) {
@@ -238,7 +252,6 @@ function create(svg, rawData) {
         .style('stroke', 'black')
         .on('click', d => console.log('click', d));
 
-    console.log('radBarleft', radBar.data());
 
     gLeft.append('g')
         .attr('class', 'axis axis--x')
@@ -274,11 +287,15 @@ function create(svg, rawData) {
 
   const yAxis = g.append('g')
       .attr('class', 'axis axis--y')
-      .call(d3.axisLeft(yBand)
+      .call(d3.axisLeft(yDate)
         .tickFormat(formatDate)
-        .tickSize(0)
+        .ticks(d3.timeDay.every(1))
+        .tickPadding(-2)
+        // .tickSize(0)
       )
       .attr('transform', `translate(${width / 2},0)`);
+
+  console.log('yAxis', yAxis.selectAll('.tick').data());
 
   yAxis.selectAll('g text')
       .attr('font-size', 15)
