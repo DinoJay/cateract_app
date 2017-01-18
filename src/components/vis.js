@@ -2,23 +2,40 @@ import * as d3 from 'd3';
 // import _ from 'lodash';
 import textures from 'textures';
 
+import { dateDiff } from './lib/utils';
+
 import '../global_styles/style.scss';
 
 const timeFormatStr = '%d/%m/%Y';
 const formatDate = d3.timeFormat(timeFormatStr);
 const parseDate = d3.timeParse(timeFormatStr);
 
-const keys = ['equipment', 'shield', 'glasses', 'cabin'];
+const keys = ['shield', 'glasses', 'cabin'];
+const timeFormat = d3.timeFormat('%Y/%m/%d %H:%M:%S %Z');
+
+function d3TimeSwitch(timeIntervalStr) {
+  switch (timeIntervalStr) {
+  case 'days':
+    return d3.timeDay;
+  case 'months':
+    return d3.timeMonth;
+  case 'weeks':
+    return d3.timeWeek;
+  default:
+    return d3.timeHour;
+  }
+}
+
 
 function preprocess(d) {
   d.date = parseDate(d.date);
 
-  d.protection = [
-    { key: 'equipment', value: d.usedEquipment },
-    { key: 'shield', value: d.ceilingShield },
-    { key: 'glasses', value: d.leadGlasses },
-    { key: 'cabin', value: d.radiationProtectionCabin }
-    // { key: 'no protection', value: 1 }
+  d.protections = [
+    // { key: 'equipment', value: parseFloat(d.usedEquipment) },
+    { key: 'shield', value: parseFloat(d.ceilingShield) },
+    { key: 'glasses', value: parseFloat(d.leadGlasses) },
+    { key: 'cabin', value: parseFloat(d.radiationProtectionCabin) }
+    // { key: 'no protections', value: 1 }
   ];
 
   d.totalProtection = parseFloat(d.usedEquipment) + parseFloat(d.ceilingShield)
@@ -29,185 +46,210 @@ function preprocess(d) {
     { key: 'right eye', value: (1 + 0.2) - d.totalProtection }
   ];
 
-  d.protection.forEach((e) => {
-    e.date = d.date;
+  d.protections.forEach((e) => {
+    e.date = d3.timeHours(d.date);
     // e.used = _.random(0, 1) ? true : false;
   });
+  d.equipment = parseFloat(d.usedEquipment);
 
   return d;
 }
 
-function create(svg, rawData) {
-  const data = rawData.map(preprocess);
-  // const svg = d3.select('#app').append('svg')
-  //           .attr('width', 1200)
-  //           .attr('height', 800);
 
-  const margin = { top: 80, right: 250, bottom: 80, left: 40 };
-  const centerMargin = 100;
+function update(data, dim, timeIntervalStr = 'days') {
+  const d3TimeInterval = d3TimeSwitch(timeIntervalStr);
+  console.log('d3TimeInterval', d3TimeInterval);
+  // data.forEach(e => (e.date = d3TimeInterval(e.date)));
 
-  const width = +svg.attr('width') - margin.left - margin.right;
-  const height = +svg.attr('height') - margin.top - margin.bottom;
+  const nestedData = d3.nest()
+    .key(d => timeFormat(d3TimeInterval(d.date)))
+    .entries(data)
+    .map((e) => {
+      e.date = new Date(e.key);
+      return e;
+    });
 
-  const g = svg
-            .append('g')
-            .attr('transform', `translate(${margin.left},${margin.top})`);
+  console.log('nestedData', nestedData);
 
-  const gLeft = g.append('g');
-  const gRight = g.append('g');
+  const values = nestedData.reduce((acc, d) => acc.concat(d.values), []);
 
-  const yBand = d3.scaleBand()
-    .rangeRound([0, height])
-    .padding(0.1);
-
-  const yDate = d3.scaleTime()
-    .range([0, height]);
-
-// const yProcedure = d3.scaleBand()
-//     .rangeRound([0, height])
-//     .padding(0.1);
+  const stacked = d3.stack()
+                  .keys(keys)
+                  .value((a, key) => {
+                    const sum = d3.sum(a.values, e => e.protections.find(b => b.key === key).value);
+                    return sum;
+                  })(nestedData);
 
   const symbols = d3.scaleOrdinal()
                   .range(d3.symbols);
 
   const protColor = d3.scaleOrdinal()
+    .domain(keys)
     .range(d3.schemeCategory10);
 
   const radDose = d3.scaleLinear()
+    .domain(d3.extent(values, d => d.radiation[0].value))
     .range(['#ffff00', '#ff0000']);
 
+  const dateExt = d3.extent(values, d => d.date);
+  const dateTicks = dateDiff(dateExt[0], dateExt[1], timeIntervalStr);
 
-  // TODO: sort data
-  // console.log('textures', textures);
-  // data.reduce((acc, d) => {
-  // });
+  const yDate = d3.scaleTime()
+    .domain(dateExt)
+    .range([0, dim.height]);
 
-  // data.sort((a, b) => b.total - a.total);
+  (function protectionBars() {
+    d3.select('.prot-axis').call(d3.axisTop(d3.scaleLinear()
+                .rangeRound([dim.width / 2 + dim.margin.center / 2, dim.width])
+                .domain([0, 1])
+                ).tickFormat(d3.format('.0%')
+             )
+        )
+      .append('text')
+      // .attr('x', 2)
+      .attr('dy', '-30')
+      .attr('dx', dim.width)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#000')
+      .attr('font-size', 15)
+      .attr('font-weight', 'bold')
+      .text('protections');
 
-  yBand.domain(data.map(d => d.date));
-
-  yDate.domain(d3.extent(data, d => d.date));
-
-  console.log('data', data);
-  protColor.domain(keys);
-  radDose.domain(d3.extent(data, d => d.radiation[0].value));
-
-  // stack
-  (function() {
-    const stack = d3.stack()
-                    .keys(keys)
-                    .value((a, key) => a.protection.find(b => b.key === key).value);
-
-    const stacked = stack(data);
     // right
     const barWidth = d3.scaleLinear()
-      .rangeRound([0, (width / 2) - (centerMargin / 2)])
-      .domain([0, 1]);
+      .rangeRound([0, (dim.width / 2) - (dim.margin.center / 2)])
+      .domain([0, d3.max(data, d => d3.sum(d.protections, e => e.value))]);
 
     symbols.domain(['CA', 'CA+PCI', 'PVI', 'PM-Implantation']);
 
-    // const area = d3.area()
-    //     .y(d => yDate(d.data.date))
-    //     .x0(d => (width / 2) + (centerMargin / 2) + barWidth(d[0]))
-    //     .x1(d => (width / 2) + (centerMargin / 2) + barWidth(d[1]));
-        // .curve(d3.curveBasis);
+    // const label = d3.select('g.prot-right').selectAll('.labelbar')
+    //   .data(data);
+    //
+    // const gLabelEnter = label.enter().append('g')
+    //   .attr('class', 'labelbar');
+    //
+    // label.merge(gLabelEnter)
+    //   .attr('transform', d => `translate(${dim.width + (dim.margin.center / 2)}, ${yDate(d.date)})`);
+    //
+    // gLabelEnter.append('path')
+    //     // TODO: update
+    //     .attr('d', d => d3.symbol().type(symbols(d.procedure))())
+    //     .attr('transform', `translate(${(20)}, ${7})`)
+    //     .attr('dx', 4)
+    //     .attr('fill', 'grey');
+    //
+    // gLabelEnter.append('text')
+    //     // TODO: update
+    //     .attr('transform', `translate(${(40)}, ${10 / 2})`)
+    //     .attr('class', 'label')
+    // //     .attr('alignment-baseline', 'middle')
+    //     .text(d => d.procedure);
+    // //     .attr('dx', 20);
 
-    // g.append('g')
-    //         .attr('class', 'grid')
-    //         .attr('transform', `translate(0,${height})`)
-    //         .call(d3.axisTop(barWidth)
-    //             .tickSize(height, 0, 0)
-    //             .tickFormat('')
-    //         );
+    const protCont = d3.select('g.prot-right').selectAll('.protCont')
+      .data(stacked, e => e.key);
 
-    const labelCont = gRight.selectAll('.labelbar')
-      .data(data)
+    protCont
       .enter()
       .append('g')
-        .attr('transform', d => `translate(${width + (centerMargin / 2)}, ${yDate(d.date)})`);
-
-    labelCont.append('path')
-        .attr('d', d => d3.symbol().type(symbols(d.procedure))())
-        // .attr('transform', `translate(${(20)}, ${(yBand.bandwidth() / 2) - 5})`)
-        .attr('transform', `translate(${(20)}, ${7})`)
-        .attr('dx', 4)
-        .attr('fill', 'grey');
-
-    labelCont.append('text')
-        // .attr('transform', `translate(${(40)}, ${yBand.bandwidth() / 2})`)
-        .attr('transform', `translate(${(40)}, ${10 / 2})`)
-    //     .attr('alignment-baseline', 'middle')
-        .text(d => d.procedure);
-    //     .attr('dy', yBand.bandwidth() / 2)
-    //     .attr('dx', 20);
-
-    gRight.selectAll('.protBar')
-      .data(stacked)
-      .enter().append('g')
-        .attr('class', d => d.key)
+      .attr('class', e => `protCont ${e.key}`)
         // .append('path')
         // .attr('d', area)
       .selectAll('rect')
       .data(d => d)
       .enter()
       .append('rect')
-        // .attr('class', d => console.log(d))
-        // .attr('y', d => yBand(d.data.date))
-        .attr('y', d => yDate(d.data.date) - (height / 19) / 2)
-        .attr('x', d => (width / 2) + (centerMargin / 2) + barWidth(d[0]))
+        .attr('class', 'protBar')
+        .attr('y', d => yDate(d.data.date) - (dim.height / dateTicks) / 2)
+        .attr('x', d => dim.width / 2 + dim.margin.center / 2 + barWidth(d[0]))
         .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
-        // .attr('height', yBand.bandwidth())
         // TODO: bandwidth
-        .attr('height', height / 19 - 5)
+        .attr('height', dim.height / dateTicks - 5)
         // .attr('height', 10)
-        // .style('fill', d => protColor(d.data.protection.find(e => d[1] === e.value).value))
-        .style('fill', function(d) {
+        // .style('fill', d => protColor(d.data.protections.find(e => d[1] === e.value).value))
+        .style('fill', function() {
           return protColor(d3.select(this.parentNode).datum().key);
         })
-        .on('mouseover', function() {
-          // console.log('event', d3.event.transform);
-          d3.select(this)
-          .attr('y', d => yDate(d.data.date) - (height / 19) / 2)
-          .transition(2000)
-          .attr('height', height / 19 - 5)
-          .attr('height', 100)
-          .attr('y', d => yDate(d.data.date) - 100 / 2);
-        });
+        .on('mouseover', (d) => {
+          // d3.select(this)
+          //   .attr('y', e => yDate(e.data.date) - (dim.height / dateTicks) / 2)
+          //   .transition(2000)
+          //   .attr('height', dim.height / dateTicks - 5)
+          //   .attr('height', 100)
+          //   .attr('y', e => yDate(e.data.date) - 100 / 2);
+          // console.log('mouseover', d.data.equipmentName);
+        })
+        .on('click', () => update(data, dim, 'weeks'));
       //   .style('stroke', 'black')
       //   .on('click', function(d) {
       //     console.log('parent data', d, d3.select(this.parentNode).datum().key);
       //   });
 
-    gRight.append('g')
-        .attr('class', 'axis axis--x')
-        .attr('transform', `translate(0,${-40})`)
-        .call(d3.axisTop(d3.scaleLinear()
-                .rangeRound([(width / 2) + (centerMargin / 2), width])
-                .domain([0, 1])
-                ).tickFormat(d3.format('.0%')
-             )
-        )
-        .append('text')
+    (function timeLine() {
+      (function dateAxis() {
+        const yAxis = d3.select('.date-axis')
+      .call(d3.axisLeft(yDate)
+        .tickFormat(formatDate)
+        .ticks(d3TimeInterval.every(1))
+        .tickPadding(-2)
+        // .tickSize(0)
+      )
+      .attr('transform', `translate(${dim.width / 2},0)`);
+
+        yAxis.selectAll('g text')
+      .attr('font-size', 15)
+      .attr('text-anchor', 'middle');
+
+    // yAxis.select("path.domain")
+      // .attr('dx', function() {
+      //   var w = this.getBBox().width;
+      //   console.log("w", w);
+      //   return -w/4;
+      //
+      // })
+        yAxis.append('text')
       // .attr('x', 2)
-      // .attr('y', yBand)
       .attr('dy', '-30')
       // .attr('dx', '10')
       .attr('text-anchor', 'middle')
       .attr('fill', '#000')
       .attr('font-size', 15)
       .attr('font-weight', 'bold')
-      .text('Radiation');
+      .text('Time');
+      }());
+
+      const equipCont = d3.select('g.center').selectAll('.equip-value')
+      .data(nestedData, d => d.date);
+      const radius = (dim.height / dateTicks) / 2;
+
+      console.log('radius', radius, 'height', dim.height, 'dateTicks', dateTicks);
+
+      equipCont.enter()
+      .append('circle')
+        .attr('class', d => d.key)
+        .attr('cx', dim.width / 2)
+        .attr('cy', d => yDate(d.date))
+
+          // .attr('y', d => yDate(d.data.date) - (height / dateTicks) / 2)
+        // .attr('width', 20)
+        .attr('r', radius)
+        // .attr('fill', d => radDose(d.value))
+        .style('fill', 'blue')
+        // .style('opacity', d => ((d.key === 'right eye') ? 0.2 : 1))
+        .style('stroke', 'black')
+        .on('click', () => update(data, dim));
+    }());
     //
   }());
 
-  (function() {
-    const stack = d3.stack();
-    stack
-      .keys(keys)
-      .value((a, key) => a.protection.find(b => b.key === key).value);
+  (function radiationBars() {
+    // const stack = d3.stack();
+    // stack
+    //   .keys(keys)
+    //   .value((a, key) => a.protections.find(b => b.key === key).value);
 
     const xRadLeft = d3.scaleLinear()
-      .rangeRound([(width / 2) - (centerMargin / 2), 0])
+      .rangeRound([(dim.width / 2) - (dim.margin.center / 2), 0])
       .domain([0, 1]);
 
     // g.append('g')
@@ -218,55 +260,53 @@ function create(svg, rawData) {
     //             .tickFormat('')
     //         );
 
-    const radBar = gLeft.selectAll('.radBar')
+    d3.select('.left').selectAll('.radCont')
       .data(data)
       .enter()
       .append('g')
+      .attr('class', 'radCont')
       .selectAll('rect')
       .data(d => d.radiation)
       .enter()
       .append('rect')
         .attr('class', d => d.key)
         .attr('x', d => xRadLeft(d.value))
-      .attr('y', function() {
-        return yBand(d3.select(this.parentNode).datum().date);
-      })
-      .attr('y', function() {
-        return yDate(d3.select(this.parentNode).datum().date);
-      })
+        .attr('y', function() {
+          return yDate(d3.select(this.parentNode).datum().date) - (dim.height / dateTicks) / 2;
+        })
+
+          // .attr('y', d => yDate(d.data.date) - (height / dateTicks) / 2)
         .attr('width', d => xRadLeft(0) - xRadLeft(d.value))
-        // .attr('height', yBand.bandwidth())
-        .attr('height', 10)
+        .attr('height', dim.height / dateTicks - 5)
         // .attr('fill', d => radDose(d.value))
         .style('fill', (d) => {
           if (!d.used) {
             const tx = textures.lines()
               .thicker().stroke(radDose(d.value));
-            svg.call(tx);
+            d3.select('svg').call(tx);
             return tx.url();
           }
           return radDose(d.value);
         })
-        .style('opacity', d => (d.key === 'right eye') ? 0.2 : 1)
-// .style('fill', 'url(#dots-7)')
+        .style('opacity', d => ((d.key === 'right eye') ? 0.2 : 1))
         .style('stroke', 'black')
-        .on('click', d => console.log('click', d));
+        .on('click', () => update(data, dim));
 
 
-    gLeft.append('g')
-        .attr('class', 'axis axis--x')
+    d3.select('.rad-axis')
         // .attr('transform', `translate(0,${height})`)
         .call(d3.axisTop(xRadLeft).tickFormat(d3.format('.0%')))
+        // .transition().duration(1500)
+        // .ease('sin-in-out')
         .append('text')
       // .attr('x', 2)
-      // .attr('y', yBand)
       .attr('dy', '-30')
-      .attr('dx', width)
+      // .attr('dx', width)
       .attr('text-anchor', 'middle')
       .attr('fill', '#000')
       .attr('font-size', 15)
       .attr('font-weight', 'bold')
-      .text('Protection');
+      .text('Radiation');
     // gLeft.append('g')
     //     .attr('class', 'axis axis--x')
     //     .attr('transform', `translate(0,${height})`)
@@ -280,46 +320,56 @@ function create(svg, rawData) {
     //     .attr('x', 2)
     //     .attr('y', xRadLeft(xRadLeft.ticks(10).pop()))
     //     .attr('dy', '0.35em')
-    //     .attr('text-anchor', 'start')
+    //     .attr('text-anchor', 'x0')
     //     .attr('fill', '#000')
     //     .text('Population');
   }());
+}
 
-  const yAxis = g.append('g')
-      .attr('class', 'axis axis--y')
-      .call(d3.axisLeft(yDate)
-        .tickFormat(formatDate)
-        .ticks(d3.timeDay.every(1))
-        .tickPadding(-2)
-        // .tickSize(0)
-      )
-      .attr('transform', `translate(${width / 2},0)`);
+function create(svg, rawData) {
+  const data = rawData.map(preprocess);
+  // const svg = d3.select('#app').append('svg')
+  //           .attr('width', 1200)
+  //           .attr('height', 800);
 
-  console.log('yAxis', yAxis.selectAll('.tick').data());
+  const margin = { top: 80, right: 250, bottom: 80, left: 80, center: 100 };
 
-  yAxis.selectAll('g text')
-      .attr('font-size', 15)
-      .attr('text-anchor', 'middle');
+  const width = +svg.attr('width') - margin.left - margin.right;
+  const height = +svg.attr('height') - margin.top - margin.bottom;
 
-    // yAxis.select("path.domain")
-      // .attr('dx', function() {
-      //   var w = this.getBBox().width;
-      //   console.log("w", w);
-      //   return -w/4;
-      //
-      // })
-  yAxis.append('text')
-      // .attr('x', 2)
-      // .attr('y', yBand)
-      .attr('dy', '-10')
-      // .attr('dx', '10')
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#000')
-      .attr('font-size', 15)
-      .attr('font-weight', 'bold')
-      .text('Time');
+  const dim = { width, height, margin };
 
-  const legend = g.append('g')
+  const gMain = svg
+            .append('g')
+            .attr('class', 'main')
+            .attr('transform', `translate(${margin.left / 2},${margin.top / 2})`);
+
+  gMain.append('g')
+            .attr('class', 'left')
+            .attr('transform', `translate(${0},${margin.top / 2})`);
+
+  const gCenter = gMain.append('g')
+            .attr('class', 'center')
+            .attr('transform', `translate(${0},${margin.top / 2})`);
+
+  gMain.append('g')
+            .attr('class', 'prot-right')
+            .attr('transform', `translate(${0},${margin.top / 2})`);
+
+  gMain.append('g')
+      .attr('class', 'prot-axis axis-x');
+
+  gCenter.append('g')
+      .attr('class', 'date-axis axis-y');
+
+  gMain.append('g')
+      .attr('class', 'rad-axis axis-x');
+
+// const yProcedure = d3.scaleBand()
+//     .rangeRound([0, height])
+//     .padding(0.1);
+
+  const legend = gMain.append('g')
     .attr('transform', `translate(0,${height})`)
     .selectAll('.legend')
     .data(keys)
@@ -328,6 +378,10 @@ function create(svg, rawData) {
       .attr('class', 'legend')
       .attr('transform', (d, i) => `translate(0,${i * 20})`)
       .style('font', '10px sans-serif');
+
+  const protColor = d3.scaleOrdinal()
+    .domain(keys)
+    .range(d3.schemeCategory10);
   //
   legend.append('rect')
       .attr('x', width - 18)
@@ -341,6 +395,16 @@ function create(svg, rawData) {
       .attr('dy', '.35em')
       .attr('text-anchor', 'end')
       .text(d => d);
+
+  update(data, dim);
+
+  // TODO: sort data
+  // console.log('textures', textures);
+  // data.reduce((acc, d) => {
+  // });
+
+  // data.sort((a, b) => b.total - a.total);
 }
 
-export { create };
+
+export { create, update };
