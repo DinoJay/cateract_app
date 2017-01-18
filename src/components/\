@@ -98,7 +98,7 @@ function update(data, dim, timeIntervalStr = 'days') {
 
   const dateExt = d3.extent(values, d => d3TimeInterval(d.date));
   dateExt[0] = d3TimeInterval.offset(dateExt[0], -1);
-  dateExt[1] = d3TimeInterval.offset(dateExt[0], 20);
+  dateExt[1] = d3TimeInterval.offset(dateExt[1], 1);
 
   const dateTicks = d3TimeInterval.count(...dateExt) + 1;
   console.log('ticks', dateTicks);
@@ -212,14 +212,14 @@ function update(data, dim, timeIntervalStr = 'days') {
 
     (function timeLine() {
       (function dateAxis() {
-        const yAxisGen = d3.axisLeft(yDate)
-                .tickFormat(timeFormat)
-                .ticks(d3TimeInterval.every(1))
-                .tickPadding(-2)
-                .tickPadding(30);
-
         const yAxis = d3.select('.date-axis')
-      .call(yAxisGen)
+      .call(d3.axisLeft(yDate)
+        .tickFormat(timeFormat)
+        .ticks(d3TimeInterval.every(1))
+        .tickPadding(-2)
+        .tickPadding(30)
+        // .tickSize(0)
+      )
       .attr('transform', `translate(${dim.width / 2},0)`);
 
         yAxis.selectAll('g text')
@@ -242,26 +242,6 @@ function update(data, dim, timeIntervalStr = 'days') {
       .attr('font-size', 15)
       .attr('font-weight', 'bold')
       .text('Time');
-
-        function zoomed() {
-          const t = d3.event.transform;
-          const yt = t.rescaleX(yDate);
-          console.log('zoom', yt.domain());
-          yAxisGen.scale(yt);
-
-          d3.select('.date-axis')
-      .call(yAxisGen);
-          // const g = d3.select('.main');
-          // g.select('.area').attr('d', area.x(d => xt(d.date)));
-          // d3.select('.date-axis').call(yAxis.scale(yt));
-        }
-        const zoom = d3.zoom()
-    .scaleExtent([1, 32])
-    .translateExtent([[0, 0], [dim.width, dim.height]])
-    .extent([[0, 0], [dim.width, dim.height]])
-    .on('zoom', zoomed);
-
-        d3.select('svg').call(zoom);
       }());
 
       const circle = d3.select('g.center').selectAll('.proc-equip')
