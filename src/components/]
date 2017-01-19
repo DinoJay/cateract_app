@@ -50,10 +50,10 @@ function preprocess(d) {
   // ];
   d.radiation = 1 - d.totalProtection;
 
-  // d.protections.forEach((e) => {
-  //   e.date = d3.timeHours(d.date);
-  //   // e.used = _.random(0, 1) ? true : false;
-  // });
+  d.protections.forEach((e) => {
+    e.date = d3.timeHours(d.date);
+    // e.used = _.random(0, 1) ? true : false;
+  });
   d.equipment = parseFloat(d.usedEquipment);
 
   return d;
@@ -203,10 +203,6 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
 
 
     protCont.selectAll('.prot-bar').style('fill', 'red');
-        // .attr('y', d => yDate(d3TimeInterval(d.data.date)) + padding / 2)
-        // .attr('x', d => dim.width / 2 + dim.margin.center / 2 + barWidth(d[0]))
-        // .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
-        // .attr('height', tickHeight - padding);
 
       //   .style('stroke', 'black')
       //   .on('click', function(d) {
@@ -214,16 +210,6 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
       //   });
 
     (function timeLine() {
-// var customTimeFormat = d3.time.format.multi([
-//   [".%L", function(d) { return d.getMilliseconds(); }],
-//   [":%S", function(d) { return d.getSeconds(); }],
-//   ["%I:%M", function(d) { return d.getMinutes(); }],
-//   ["%I %p", function(d) { return d.getHours(); }],
-//   ["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
-//   ["%b %d", function(d) { return d.getDate() != 1; }],
-//   ["%B", function(d) { return d.getMonth(); }],
-//   ["%Y", function() { return true; }]
-// ]);
       (function dateAxis() {
         const yAxisGen = d3.axisLeft(yDate)
                 .tickFormat(timeFormat)
@@ -259,7 +245,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
       }());
 
 
-      const proc = d3.select('g.center').selectAll('.proc')
+      const proc = d3.select('g.center').append('g').selectAll('.proc')
         .data(data, d => `${d.key}-${opts.timeIntervalStr}`);
 
       // const procWidth = d3.min([dim.margin.center / 2, tickHeight]);
@@ -269,11 +255,11 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
 
       const procEnter = proc.enter()
         .append('path')
-        .attr('class', 'proc')
         .attr('d', d => symbolGenerator.type(symbols(d.procedure))())
 
         // .attr('transform', `translate(${(20)}, ${(yBand.bandwidth() / 2) - 5})`)
-        // .attr('dx', 4)
+        .attr('transform', d => `translate(${0}, ${yDate(d.date) + symbolSize / 2})`)
+        .attr('dx', 4)
         .attr('fill', 'grey');
 
 
@@ -283,13 +269,8 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
         // .attr('r', 5); // .attr('width', procWidth)
 
       proc.merge(procEnter)
-        .attr('transform', d => `translate(${0}, ${yDate(d.date) + symbolSize / 2})`);
+        .attr('cy', d => yDate(d.date));
 
-      proc
-        .attr('fill', 'red')
-        .attr('transform', d => `translate(${0}, ${yDate(d.date) + symbolSize / 2})`);
-
-      proc.exit().remove();
 
           // .attr('y', d => yDate(d.data.date) - (height / dateTicks) / 2)
         // .attr('width', 20)
@@ -307,6 +288,8 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
       //   .attr('y', d => yDate(d.date))
       //   .attr('height', tickHeight)
       //   .attr('width', procWidth);
+
+      proc.exit().remove();
     }());
     //
   }());
