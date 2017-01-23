@@ -43,7 +43,7 @@ function d3TimeSwitch(data, yDate) {
     return {
       timeIntervalStr: 'months',
       timeTickInterval: d3.timeMonth,
-      timeNestInterval: d3.timeDay,
+      timeNestInterval: d3.timeWeek,
       timeFormat: d3.timeFormat('%B')
     };
   default:
@@ -140,8 +140,8 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
     .entries(data)
     .map((e) => {
       e.date = new Date(e.key);
-      e.totalProtection = d3.sum(e.values, a => a.totalProtection);
-      e.totalRadiation = d3.sum(e.values, a => a.radiation);
+      e.totalProtection = d3.max(e.values, a => a.totalProtection);
+      e.totalRadiation = d3.max(e.values, a => a.radiation);
       return e;
     });
 
@@ -182,7 +182,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
   (function protectionBars() {
     const axis = d3.select('.prot-axis').call(d3.axisTop(d3.scaleLinear()
                 .rangeRound([dim.width / 2 + dim.innerMargin.center / 2, dim.width])
-                .domain([0, maxProt])
+                .domain([0, 1])
                 ));
       // .tickFormat(d3.format('.0%'))
       //            .tickSizeInner(12)
@@ -206,7 +206,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
 
     const barWidth = d3.scaleLinear()
       .range([dim.width / 2 + dim.innerMargin.center / 2, dim.width])
-      .domain([0, maxProt]);
+      .domain([0, 1]);
 
     const stacked = d3.stack()
                   .keys(keys)
