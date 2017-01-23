@@ -24,17 +24,13 @@ class Comp extends React.Component {
 
   render() {
     return (
-      <svg
-        className={style.Comp}
-        width={this.props.width}
-        height={this.props.height}
-      />
+      <svg className={style.Comp} width={this.props.width} height={this.props.height} />
     );
   }
 }
 
 Comp.defaultProps = {
-  width: 1200,
+  width: 400,
   height: 800
 };
 // const pureComp = () => (
