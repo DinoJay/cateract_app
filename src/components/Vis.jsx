@@ -31,7 +31,7 @@ class Comp extends React.Component {
 
 Comp.defaultProps = {
   width: 400,
-  height: 800
+  height: 610
 };
 // const pureComp = () => (
 //   <div className={style.pureComp}>

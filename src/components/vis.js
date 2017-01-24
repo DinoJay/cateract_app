@@ -14,16 +14,23 @@ const keys = ['shield', 'glasses', 'cabin'];
 const formatTime = d3.timeFormat('%Y/%m/%d %H:%M:%S %Z');
 const extraSymbols = Object.values(moreSymbols).reverse();
 
-function d3TimeSwitch(data, yDate) {
-  // const nestedData = d3.nest()
-  //   .key(d => formatTime(timeTickInterval(d.date)))
-  //   .entries(data);
-  const [startDate, endDate] = yDate.domain();
-  const limit = 20;
 
+function aggregate(data, timeInterval) {
+  return d3.nest()
+          .key(d => formatTime(timeInterval(d.date)))
+          .entries(data)
+          .map((e) => {
+            e.date = new Date(e.key);
+            e.totalProtection = d3.sum(e.values, a => a.totalProtection) / e.values.length;
+            e.totalRadiation = d3.sum(e.values, a => a.radiation) / e.values.length;
+            return e;
+          });
+}
+
+function d3TimeSwitch(data, startDate, endDate) {
+  const limit = 15;
   switch (true) {
   case (d3.timeDay.count(startDate, endDate) < limit):
-    console.log('timeDay', d3.timeDay.count(startDate, endDate));
     return {
       timeIntervalStr: 'days',
       timeTickInterval: d3.timeDay,
@@ -31,7 +38,6 @@ function d3TimeSwitch(data, yDate) {
       timeFormat: d3.timeFormat('%a %d')
     };
   case (d3.timeWeek.count(startDate, endDate) < limit):
-    console.log('timeWeek', d3.timeWeek.count(startDate, endDate));
     return {
       timeIntervalStr: 'weeks',
       timeTickInterval: d3.timeWeek,
@@ -39,7 +45,6 @@ function d3TimeSwitch(data, yDate) {
       timeFormat: d3.timeFormat('%b %d')
     };
   case (d3.timeMonth.count(startDate, endDate) < limit):
-    console.log('timeMonth', d3.timeMonth.count(startDate, endDate));
     return {
       timeIntervalStr: 'months',
       timeTickInterval: d3.timeMonth,
@@ -47,55 +52,13 @@ function d3TimeSwitch(data, yDate) {
       timeFormat: d3.timeFormat('%B')
     };
   default:
-    console.log('timeYear', d3.timeMonth.count(startDate, endDate));
     return {
       timeIntervalStr: 'years',
       timeTickInterval: d3.timeYear,
-      timeNestInterval: d3.timeDay,
+      timeNestInterval: d3.timeMonth,
       timeFormat: d3.timeFormat('%Y')
     };
-
   }
-
-  // if (aggrTime(d3.timeDay, data).length < limit) {
-  //   console.log('days');
-  //   return { timeIntervalStr: 'days', timeTickInterval: d3.timeDay, timeFormat: d3.timeFormat('%a %d') };
-  // } else {
-  //   return { timeIntervalStr: 'months', timeTickInterval: d3.timeMonth, timeFormat: d3.timeFormat('%a %d') };
-  // }
-
-  // switch (data) {
-  // case d3.nest().key(d => formatTime(d3.timeDay(d.date))).entries(data).length < limit || true:
-  //   return { key: 'days', timeTickInterval: d3.timeDay, timeFormat: d3.timeFormat('%a %d') };
-  // case d3.nest().key(d => formatTime(d3.timeWeek(d.date))).entries(data).length < limit:
-  //   return { key: 'weeks', timeTickInterval: d3.timeWeek, timeFormat: d3.timeFormat('%a %d') };
-  // case d3.nest().key(d => formatTime(d3.timeMonth(d.date))).entries(data).length < limit:
-  //   return { key: 'months', timeTickInterval: d3.timeMonth, timeFormat: d3.timeFormat('%a %d') };
-  // default:
-  //   return { key: 'years', timeTickInterval: d3.timeYear, timeFormat: d3.timeFormat('%a %d') };
-  // }
-}
-  // switch (timeIntervalStr) {
-  // case 'days':
-  //   return { timeTickInterval: d3.timeDay, timeFormat: d3.timeFormat('%a %d') };
-  // case 'months':
-  //   return { timeTickInterval: d3.timeMonth, timeFormat: d3.timeFormat('%B') };
-  // case 'weeks':
-  //   return { timeTickInterval: d3.timeWeek, timeFormat: d3.timeFormat('%b %d') };
-  // case 'years':
-  //   return { timeTickInterval: d3.timeYear, timeFormat: d3.timeFormat('%Y') };
-  // default:
-  //   return { timeTickInterval: d3.timeHour, timeFormat: d3.timeFormat('%I %p') };
-  // }
-// }
-
-function adjustTextLabels(selection) {
-}
-
-// calculate the width of the days in the timeScale
-function daysToPixels(days, timeScale, timeInterval) {
-  const d1 = new Date();
-  return timeScale(timeInterval.offset(d1, days)) - timeScale(d1);
 }
 
 function preprocess(d) {
@@ -112,40 +75,25 @@ function preprocess(d) {
   d.totalProtection = parseFloat(d.ceilingShield)
     + parseFloat(d.leadGlasses) + parseFloat(d.radiationProtectionCabin);
 
-  // d.radiation = [
-  //   { key: 'left eye', value: 1 - d.totalProtection },
-  //   { key: 'right eye', value: (1 + 0.2) - d.totalProtection }
-  // ];
   d.radiation = 1 - d.totalProtection;
 
-  // d.protections.forEach((e) => {
-  //   e.date = d3.timeHours(d.date);
-  //   // e.used = _.random(0, 1) ? true : false;
-  // });
   d.equipment = parseFloat(d.usedEquipment);
 
   return d;
 }
 
 
-function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
-  const { _, yDate } = opts;
+function update(nestedData, dim, opts) {
+  const {
+    timeIntervalStr,
+    timeTickInterval,
+    timeFormat,
+    timeNestInterval,
+    yDate
+  } = opts;
 
-  // data.forEach(e => (e.date = timeTickInterval(e.date)));
-
-  const { timeIntervalStr, timeTickInterval, timeFormat, timeNestInterval } = d3TimeSwitch(data, yDate);
-
-  const nestedData = d3.nest()
-    .key(d => formatTime(timeNestInterval(d.date)))
-    .entries(data)
-    .map((e) => {
-      e.date = new Date(e.key);
-      e.totalProtection = d3.max(e.values, a => a.totalProtection);
-      e.totalRadiation = d3.max(e.values, a => a.radiation);
-      return e;
-    });
-
-
+  const startDate = yDate.domain()[0];
+  const barHeight = yDate(startDate) - yDate(timeNestInterval.offset(startDate, -1));
   const symbols = d3.scaleOrdinal()
                   .range(extraSymbols);
 
@@ -154,19 +102,15 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
     .range(d3.schemeCategory10);
 
   const radDose = d3.scaleLinear()
-    .domain(d3.extent(data, d => d.radiation))
+    .domain(d3.extent(nestedData, d => d.totalRadiation))
     .range(['#ffff00', '#ff0000']);
 
   // const offStartDate = timeTickInterval.offset(startDate, -1);
   // const timeRange = timeTickInterval.count(...dateExt) + 1;
 
-  // const yDate2 = yDate.copy();
-  const [startDate, endDate] = yDate.domain().map(d => timeTickInterval.floor(d, 1));
-  const barHeight = yDate(startDate) - yDate(timeNestInterval.offset(startDate, -1));
-  console.log('barHeight', barHeight);
-  const dateTicks = timeNestInterval.count(startDate, endDate) + 1;
+  // const brushScale = yDate.copy();
+  // const dateTicks = timeNestInterval.count(startDate, endDate) + 1;
 
-  const maxProt = d3.max(nestedData, d => d.totalProtection);
   // const zoom = d3.zoom()
   //         .scaleExtent([1, 32])
   //         .translateExtent([[0, 0], [dim.width, dim.height]])
@@ -181,7 +125,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
   const padding = 0;
   (function protectionBars() {
     const axis = d3.select('.prot-axis').call(d3.axisTop(d3.scaleLinear()
-                .rangeRound([dim.width / 2 + dim.innerMargin.center / 2, dim.width])
+                .rangeRound([dim.width / 2 + dim.subMargin.center / 2, dim.width])
                 .domain([0, 1])
                 ));
       // .tickFormat(d3.format('.0%'))
@@ -202,22 +146,22 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
     //   .attr('font-size', 15)
     //   .attr('font-weight', 'bold')
     //   .text('Protection');
-    console.log('maxProt', maxProt);
 
     const barWidth = d3.scaleLinear()
-      .range([dim.width / 2 + dim.innerMargin.center / 2, dim.width])
+      .range([dim.width / 2 + dim.subMargin.center / 2, dim.width])
       .domain([0, 1]);
 
     const stacked = d3.stack()
                   .keys(keys)
                   .value((a, key) =>
                     d3.sum(a.values, e => e.protections.find(b => b.key === key)
-                      .value))(nestedData);
+                      .value) / a.values.length)(nestedData);
 
     symbols.domain(['CA', 'CA+PCI', 'PVI', 'PM-Implantation']);
-    console.log('barWidth', [dim.width / 2 + dim.innerMargin.center / 2, dim.width]);
+    console.log('barWidth', [dim.width / 2 + dim.subMargin.center / 2, dim.width]);
 
     const protLayer = d3.select('g.right').selectAll('.prot-layer')
+      // TODO: find correct
       .data(stacked, (d, i) => `prot${Math.random() * 100}+${i}`);
 
     console.log('timeNestInterval', timeNestInterval.toString());
@@ -238,7 +182,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
         .style('fill', function() {
           return protColor(d3.select(this.parentNode).datum().key);
         })
-        .attr('opacity', 0.5)
+        .attr('opacity', 0.1)
         .style('stroke', 'black');
 
     protLayerEnter.selectAll('path')
@@ -254,7 +198,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
       .append('rect')
         .attr('class', 'prot-bar')
         // .attr('y', d => yDate(timeTickInterval(d.data.date)) - (dim.height / dateTicks) / 2)
-        // .attr('x', d => dim.width / 2 + dim.innerMargin.center / 2 + barWidth(d[0]))
+        // .attr('x', d => dim.width / 2 + dim.subMargin.center / 2 + barWidth(d[0]))
         // .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
         // // TODO: bandwidth
         // .attr('height', dim.height / dateTicks - 5)
@@ -272,8 +216,8 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
           //   .attr('height', 100)
           //   .attr('y', e => yDate(e.data.date) - 100 / 2);
           // console.log('mouseover', d.data.equipmentName);
-        })
-        .on('click', () => update(data, dim, { timeIntervalStr: 'weeks', yDate: null }));
+        });
+        // .on('click', () => update(data, dim, { timeIntervalStr: 'weeks', yDate: null }));
 
     const protMerge = protLayer.merge(protLayerEnter).selectAll('rect')
         .attr('y', d => yDate(timeNestInterval(d.data.date)) + padding / 2)
@@ -285,7 +229,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
 
     // protLayer.selectAll('.prot-bar').style('fill', 'red')
     //     .attr('y', d => yDate(timeTickInterval(d.data.date)) + padding / 2)
-    //     .attr('x', d => dim.width / 2 + dim.innerMargin.center / 2 + barWidth(d[0]))
+    //     .attr('x', d => dim.width / 2 + dim.subMargin.center / 2 + barWidth(d[0]))
     //     .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
     //     .attr('height', tickHeight - padding);
 
@@ -311,17 +255,20 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
 
       (function dateAxis() {
         const padding = 0;
-        const width = dim.innerMargin.center - padding;
-
-        const tickHeight = yDate(endDate) - yDate(timeTickInterval.offset(endDate, -1));
-        const height = tickHeight - padding;
-
+        const width = dim.subMargin.center - padding;
         // const yAxisGen = d3.axisLeft(yDate)
         //         // .tickFormat(timeFormat)
         //         .ticks(timeTickInterval.every(1));
 
         d3.select('.date-axis').selectAll('*').remove();
-        const timeData = timeTickInterval.range(...yDate.domain());
+
+        const [startDate, endDate] = yDate.domain();
+        const timeData = timeTickInterval
+          .range(...[timeTickInterval.floor(startDate), timeTickInterval.ceil(endDate)])
+          .map((d) => {
+            d.height = yDate(timeTickInterval.offset(d, 1)) - yDate(d);
+            return d;
+          });
 
         const yAxis = d3.select('.date-axis').selectAll('.tick')
           .data(timeData);
@@ -333,7 +280,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
         yAxisEnter.append('rect')
           .attr('width', width)
           .attr('transform', `translate(${-width / 2}, 0)`)
-          .attr('height', d => yDate(timeTickInterval.offset(d, 1)) - yDate(d))
+          .attr('height', d => d.height)
           .attr('rx', 5)
           .attr('ry', 5)
           .attr('fill', 'none')
@@ -352,9 +299,9 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
          .attr('font-size', 14)
          .attr('text-anchor', 'middle')
          .text(timeFormat)
-         .attr('transform', function() {
+         .attr('transform', function(d) {
            const bbox = this.getBBox();
-           return `translate(${0},${height / 2 + bbox.height / 4})`;
+           return `translate(${0},${d.height / 2 + bbox.height / 4})`;
          });
 
     // yAxis.select("path.domain")
@@ -380,16 +327,16 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
         //
         // yAxis.selectAll('.tick')
         //   .append('rect')
-        //   .attr('width', dim.innerMargin.center)
-        //   .attr('transform', `translate(${-dim.innerMargin.center / 2}, 0)`)
+        //   .attr('width', dim.subMargin.center)
+        //   .attr('transform', `translate(${-dim.subMargin.center / 2}, 0)`)
         //   .attr('height', tickHeight)
         //   .attr('rx', 5)
         //   .attr('ry', 5)
         //   .attr('fill', 'none')
         //   .attr('stroke', 'grey')
         //   .on('mouseover', d => console.log('d', d));
-          // .attr('x1', -dim.innerMargin.center / 2)
-          // .attr('x2', dim.innerMargin.center / 2;
+          // .attr('x1', -dim.subMargin.center / 2)
+          // .attr('x2', dim.subMargin.center / 2;
           // .attr('y1', 0)
           // .attr('y2', tickHeight)
 
@@ -403,9 +350,9 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
 
 
       const proc = d3.select('g.center').selectAll('.proc')
-        .data(data, d => `${d.key}-${timeIntervalStr}`);
+        .data(nestedData, d => `${d.key}-${timeIntervalStr}`);
 
-      // const procWidth = d3.min([dim.innerMargin.center / 2, tickHeight]);
+      // const procWidth = d3.min([dim.subMargin.center / 2, tickHeight]);
 
       // (function procedure() {
       //   const symbolSize = 5;
@@ -445,7 +392,7 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
     //   .value((a, key) => a.protections.find(b => b.key === key).value);
 
     const radBarWidth = d3.scaleLinear()
-      .rangeRound([(dim.width / 2) - (dim.innerMargin.center / 2), 0])
+      .rangeRound([(dim.width / 2) - (dim.subMargin.center / 2), 0])
       .domain([0, d3.max(nestedData, d => d.totalRadiation)]);
 
     // g.append('g')
@@ -494,22 +441,6 @@ function update(data, dim, opts = { timeIntervalStr: 'days', yDate: null }) {
       .attr('font-size', 15)
       .attr('font-weight', 'bold')
       .text('Radiation');
-    // gLeft.append('g')
-    //     .attr('class', 'axis axis--x')
-    //     .attr('transform', `translate(0,${height})`)
-    //     .call(d3.axisBottom(yBand));
-
-    //
-    // g.append('g')
-    //     .attr('class', 'axis axis--y')
-    //     .call(d3.axisLeft(radBarWidth).ticks(10, 's'))
-    //   .append('text')
-    //     .attr('x', 2)
-    //     .attr('y', radBarWidth(radBarWidth.ticks(10).pop()))
-    //     .attr('dy', '0.35em')
-    //     .attr('text-anchor', 'x0')
-    //     .attr('fill', '#000')
-    //     .text('Population');
   }());
 }
 
@@ -520,28 +451,30 @@ function create(svg, rawData) {
   //           .attr('height', 800);
 
   const brushHeight = 50;
-  const brushMargin = 10;
   const brushHandleSize = 40;
   const axisHeight = 45;
 
-  const outerMargin = { top: 0, right: 10, bottom: 80, left: 20 };
-  const innerMargin = {
-    top: 10 + brushHeight + brushMargin + axisHeight,
-    right: 250,
-    bottom: 80,
+  const outerMargin = { top: 0, right: 50, bottom: 0, left: 50 };
+
+  const subMargin = {
+    top: brushHeight + axisHeight + 40,
+    right: 0,
+    bottom: 0,
     left: 0,
     center: 50
   };
 
   const width = +svg.attr('width') - outerMargin.left - outerMargin.right;
   const height = +svg.attr('height') - outerMargin.top - outerMargin.bottom;
+  const subHeight = height - subMargin.top - subMargin.bottom;
+  const subWidth = height - subMargin.left - subMargin.right;
 
-  const dim = { width, height, innerMargin };
+  const dim = { width, height, subMargin };
 
   const cont = svg
             .append('g')
             .attr('class', 'cont')
-           .attr('transform', `translate(${outerMargin.left},${outerMargin.top})`);
+            .attr('transform', `translate(${outerMargin.left},${outerMargin.top})`);
 
   const context = cont.append('g')
     .attr('class', 'context');
@@ -549,11 +482,24 @@ function create(svg, rawData) {
   const gBrush = context.append('g')
       .attr('class', 'brush');
 
-  const gMain = cont
+  const subCont = cont
             .append('g')
+            .attr('class', 'sub-cont')
+            .attr('transform', `translate(${0},${subMargin.top})`);
+
+  subCont.append('g')
+      .attr('class', 'prot-axis axis-x')
+      // .attr('transform', `translate(0,${0})`);
+      .attr('transform', `translate(0,${-10})`);
+
+  subCont.append('g')
+      .attr('class', 'rad-axis axis-x')
+      // .attr('transform', `translate(0,${-20})`);
+      .attr('transform', `translate(0,${-10})`);
+
+  const gMain = subCont.append('g')
             .attr('class', 'main')
-            .attr('clip-path', 'url(#clip)')
-            .attr('transform', `translate(${0},${innerMargin.top})`);
+            .attr('clip-path', 'url(#clip)');
 
   svg.append('clipPath')
    .attr('id', 'clip')
@@ -576,49 +522,33 @@ function create(svg, rawData) {
   gCenter.append('g')
       .attr('class', 'date-axis axis-y');
 
-  cont.append('g')
-      .attr('class', 'prot-axis axis-x')
-      .attr('transform', `translate(0,${brushHeight + brushMargin + axisHeight})`);
-
-  cont.append('g')
-      .attr('class', 'rad-axis axis-x')
-      .attr('transform', `translate(0,${brushHeight + brushMargin + axisHeight})`);
-
-  const legend = gMain.append('g')
-    .attr('transform', `translate(0,${height})`)
-    .selectAll('.legend')
-    .data(keys)
-    .enter()
-      .append('g')
-      .attr('class', 'legend')
-      .attr('transform', (d, i) => `translate(0,${i * 20})`)
-      .style('font', '10px sans-serif');
-
-  const protColor = d3.scaleOrdinal()
-    .domain(keys)
-    .range(d3.schemeCategory10);
-  //
-  legend.append('rect')
-      .attr('x', width - 18)
-      .attr('width', 18)
-      .attr('height', 18)
-      .attr('fill', protColor);
-
-  legend.append('text')
-      .attr('x', width - 24)
-      .attr('y', 9)
-      .attr('dy', '.35em')
-      .attr('text-anchor', 'end')
-      .text(d => d);
-
-  const defaultTimeInterval = d3.timeDay;
-  const dateExt = d3.extent(data, d => defaultTimeInterval.floor(d.date));
+  // const defaultTimeInterval = d3.timeDay;
+  const [startDate, endDate] = d3.extent(data, d => d.date);
 
   const yDate = d3.scaleTime()
-      .domain(dateExt)
-      .range([0, dim.height]);
+      .domain([d3.timeMonth.floor(startDate), d3.timeMonth.ceil(endDate)])
+      .range([0, subHeight]);
 
-  const yDate2 = yDate.copy().range([0, width - 20]);
+  const brushScale = d3.scaleTime()
+    .domain([d3.timeMonth.floor(startDate), d3.timeMonth.ceil(endDate)])
+      // .domain([startDate, endDate])
+    .range([0, width]);
+
+  context.selectAll('.mark')
+  .data(data)
+  .enter()
+  .append('line')
+  .attr('stroke', 'grey')
+  .attr('stroke-width', 0.5)
+  .attr('x1', d => brushScale(d.date))
+  .attr('y1', 0)
+  .attr('y2', brushHeight)
+  .attr('x2', d => brushScale(d.date));
+
+  context.append('g')
+      .attr('class', 'axis axis--x')
+      .attr('transform', `translate(0,${brushHeight})`)
+      .call(d3.axisBottom(brushScale));
 
   const handle = gBrush.selectAll('.handle--custom')
   .data([{ type: 'w' }, { type: 'e' }])
@@ -638,7 +568,6 @@ function create(svg, rawData) {
   function brushmoved(handle, s) {
     if (s == null) {
       handle.attr('display', 'none');
-    // circle.classed("active", false);
     } else {
       handle
         .attr('display', null)
@@ -649,34 +578,31 @@ function create(svg, rawData) {
   const brush = d3.brushX()
     .extent([[0, 0], [dim.width, brushHeight]])
     .handleSize(brushHandleSize)
-    .on('brush end', () => {
-      const s = d3.event.selection || yDate2.range();
-      const d0 = s.map(yDate2.invert, yDate2);
-      const d1 = d0.map(defaultTimeInterval.round);
-      if (d1[0] >= d1[1]) {
-        d1[0] = defaultTimeInterval.floor(d0[0]);
-        d1[1] = defaultTimeInterval.offset(d1[0]);
-      }
+    .on('start brush end', () => {
+      const s = d3.event.selection || brushScale.range();
+      const d0 = s.map(brushScale.invert, brushScale);
+      // const d1 = d0.map(defaultTimeInterval.round);
+      // if (d1[0] >= d1[1]) {
+      //   d1[0] = defaultTimeInterval.floor(d0[0]);
+      //   d1[1] = defaultTimeInterval.offset(d1[0]);
+      // }
       if (d3.event.sourceEvent) {
-        yDate.domain(d1);
-        update(data, dim, { timeIntervalStr: 'days', yDate });
+        yDate.domain(d0);
+        const timeOpts = { ...d3TimeSwitch(data, ...yDate.domain()), yDate };
+        const nestedData = aggregate(data, timeOpts.timeNestInterval);
+        update(nestedData, dim, timeOpts);
       }
       brushmoved(handle, s);
-    })
-    .on('start', e => brushmoved(handle, e));
+    });
+    // .on('start', e => brushmoved(handle, e));
 
   d3.select('.brush')
       .call(brush)
-      .call(brush.move, yDate2.range());
+      .call(brush.move, brushScale.range());
 
-  update(data, dim, { timeIntervalStr: 'days', yDate });
-
-  // TODO: sort data
-  // console.log('textures', textures);
-  // data.reduce((acc, d) => {
-  // });
-
-  // data.sort((a, b) => b.total - a.total);
+  const timeOpts = { ...d3TimeSwitch(data, ...yDate.domain()), yDate };
+  const nestedData = aggregate(data, timeOpts.timeNestInterval);
+  update(nestedData, dim, timeOpts);
 }
 
 
