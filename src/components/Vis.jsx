@@ -6,6 +6,12 @@ import style from './styles/Comp.scss';
 
 import { create } from './vis';
 
+  // function reset() {
+  //   console.log('reset');
+  //   zoomHandler.transform(svg.select('.zoom'),
+  //     d3.zoomIdentity
+  //     .translate(100, 0));
+  // }
 class Comp extends React.Component {
   static propTypes() {
     return {
