@@ -26,6 +26,20 @@ function aggregate(data, timeInterval) {
           });
 }
 
+function hexagon(width, height, arrowWidth) {
+  const hexagonData = [
+      // center right
+      [width + arrowWidth, 0],
+      [width, height],
+      [0, height],
+      // centerp left
+      [0 + arrowWidth, 0],
+      [0, -height + 0],
+      [0 + width, -height]
+  ];
+  return d3.line()(hexagonData);
+}
+
 function intervalBefore(intervalStr) {
   switch (intervalStr) {
   case 'months': return d3.timeYear;
@@ -109,7 +123,7 @@ function update(data, dim, yDate) {
 
   const nestedData = aggregate(data, nestInterval);
 
-  const startDate = yDate.domain()[0];
+  const [startDate, endDate] = yDate.domain();
   const barHeight = yDate(startDate) - yDate(nestInterval.offset(startDate, -1));
   const symbols = d3.scaleOrdinal()
                   .range(extraSymbols);
@@ -123,7 +137,7 @@ function update(data, dim, yDate) {
     .range(['#ffff00', '#ff0000']);
 
 
-  const padding = 0;
+  const barPadding = 0;
   (function protectionBars() {
     const axis = d3.select('.prot-axis').call(d3.axisTop(d3.scaleLinear()
                 .rangeRound([dim.width / 2 + dim.subMargin.center / 2, dim.width])
@@ -167,7 +181,7 @@ function update(data, dim, yDate) {
     protLayer.exit().remove();
 
     const area = d3.area()
-        .y(d => yDate(nestInterval(d.data.date)) + padding / 2)
+        .y(d => yDate(nestInterval(d.data.date)) + barPadding / 2)
         .x0(d => barWidth(d[0]))
         .x1(d => barWidth(d[1]));
         // .curve(d3.curveStepBefore);
@@ -207,18 +221,18 @@ function update(data, dim, yDate) {
         .attr('y', function() { return d3.select(this).attr('y'); })
         .transition()
         .duration(500)
-        .attr('y', d => yDate(d.data.date) + padding / 2)
+        .attr('y', d => yDate(d.data.date) + barPadding / 2)
         .attr('x', d => barWidth(d[0]))
         .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
-        .attr('height', barHeight - padding);
+        .attr('height', barHeight - barPadding);
 
     protSeg.exit().remove();
 
     // protLayer.selectAll('.prot-bar').style('fill', 'red')
-    //     .attr('y', d => yDate(tickInterval(d.data.date)) + padding / 2)
+    //     .attr('y', d => yDate(tickInterval(d.data.date)) + barPadding / 2)
     //     .attr('x', d => dim.width / 2 + dim.subMargin.center / 2 + barWidth(d[0]))
     //     .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
-    //     .attr('height', tickHeight - padding);
+    //     .attr('height', tickHeight - barPadding);
 
       //   .style('stroke', 'black')
       //   .on('click', function(d) {
@@ -241,11 +255,9 @@ function update(data, dim, yDate) {
                 // .tickPadding(30);
 
     (function timeLine() {
-      const padding = 0;
-      const width = dim.subMargin.center - padding;
-      const height = d => yDate(tickInterval.offset(d, 1)) - yDate(d);
+      const width = dim.subMargin.center - barPadding;
+      const tickHeight = d => yDate(tickInterval.offset(d, 1)) - yDate(d);
 
-      const [startDate, endDate] = yDate.domain();
       const timeData = tickInterval
           .range(...[tickInterval.floor(startDate), tickInterval.ceil(endDate)])
           .map(d => ({ key: timeFormat(d), date: d }));
@@ -253,27 +265,22 @@ function update(data, dim, yDate) {
       const yAxis = d3.select('.date-axis').selectAll('.time-tick')
           .data(timeData, d => d.key);
 
-
-      console.log('tickInterval', intervalStr);
       const yAxisEnter = yAxis.enter()
           .append('g')
           .attr('transform', (n) => {
-            // console.log('transform yAxis enter', yAxis.enter().data(), 'yAxis exit', yAxis.exit().data());
-            const olddata = yAxis.exit().merge(yAxis).data();
-            const dateDict = olddata.map((d) => {
-              const stDate = d3.min([d.date, n.date]);
-              const enDate = d3.max([d.date, n.date]);
-              const count = intervalBefore(intervalStr).count(stDate, enDate);
+            const dateDict = yAxis.exit().data().map((d) => {
+              const count = intervalBefore(intervalStr)
+                .count(d3.min([d.date, n.date]), d3.max([d.date, n.date]));
               return { date: d.date, value: count };
             });
             console.log('dateDict', dateDict);
-            const minDate = dateDict.reduce((acc, d) => (acc.value > d.value ? d : acc), dateDict[0]);
-            // console.log('minDate', minDate);
+            const minDate = dateDict
+              .reduce((acc, d) => (acc.value > d.value ? d : acc), dateDict[0]);
             const nearest = yAxis.exit().filter(d => d.date === minDate.date);
-            // console.log('nearest', nearest);
             if (!nearest.empty()) {
               return nearest.attr('transform');
             }
+            return `translate(${dim.height / 2},0)`;
           })
           .attr('class', 'time-tick');
 
@@ -283,17 +290,18 @@ function update(data, dim, yDate) {
          .attr('text-anchor', 'middle')
          .attr('transform', function(d) {
            const bbox = this.getBBox();
-           return `translate(${0},${height(d.date) / 2 + bbox.height / 4})`;
+           return `translate(${0},${tickHeight(d.date) / 2 + bbox.height / 4})`;
          });
           // .on('mouseover', d => console.log('d', d));
 
-      yAxisEnter.append('rect')
-          .attr('transform', `translate(${-width / 2}, 0)`)
+      yAxisEnter
+        .append('path')
+        .attr('transform', 'rotate(90)')
           // .attr('height', d => d.height)
           // .attr('width', width)
-          .attr('rx', 4)
-          .attr('ry', 4)
-          .attr('fill', 'lightgrey')
+          // .attr('rx', 4)
+          // .attr('ry', 4)
+          .attr('fill', 'grey')
           .attr('opacity', 0.4)
           .attr('stroke', 'grey');
           // .on('touchstart', (d) => {
@@ -335,12 +343,14 @@ function update(data, dim, yDate) {
           .attr('transform', d => `translate(0, ${yDate(d.date)})`);
 
       yAxis.merge(yAxisEnter)
-          .select('rect')
+          .select('path')
           // .attr('height', 0)
           // .attr('width', 0)
           .transition()
           .duration(500)
-          .attr('height', d => height(d.date))
+          .attr('d', d => hexagon(tickHeight(d.date), width / 2, tickHeight(d.date) * timeData.length / 10))
+          .style('stroke', 'black')
+          .attr('height', d => tickHeight(d.date))
           .attr('width', width);
 
 
@@ -349,7 +359,7 @@ function update(data, dim, yDate) {
 
          .attr('transform', function(d) {
            const bbox = this.getBBox();
-           return `translate(${0},${height(d.date) / 2 + bbox.height / 4})`;
+           return `translate(${0},${tickHeight(d.date) / 2 + bbox.height / 4})`;
          });
 
       yAxis.exit().remove();
@@ -438,9 +448,9 @@ function update(data, dim, yDate) {
       .transition()
       .duration(500)
       .attr('x', d => radBarWidth(d.totalRadiation))
-      .attr('y', d => yDate(d.date) + padding / 2)
+      .attr('y', d => yDate(d.date) + barPadding / 2)
       .attr('width', d => radBarWidth(0) - radBarWidth(d.totalRadiation))
-      .attr('height', barHeight - padding)
+      .attr('height', barHeight - barPadding)
       .style('fill', d => radDose(d.totalRadiation));
 
     radBar.exit().remove();
