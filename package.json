@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --config webpack.production.config.js --progress --profile --colors",
     "start": "webpack-dev-server --progress --profile --colors",
-    "lint": "eslint --ext js --ext jsx src || exit 0"
+    "lint": "eslint --ext js --ext jsx src || exit 0",
+    "test": "xo"
   },
   "repository": {
     "type": "git",
@@ -18,16 +19,12 @@
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.5",
     "d3": "^4.4.0",
+    "d3-jetpack": "^1.0.2",
     "d3-symbol-extra": "^0.1.0",
-    "dsv-loader": "^1.1.0",
-    "json-loader": "^0.5.4",
     "materialize-css": "^0.97.8",
     "materialize-sass": "^0.95.2",
-    "moment": "^2.17.1",
-    "node-sass": "^3.13.0",
     "react": "15.4.1",
     "react-dom": "15.4.1",
-    "sass-loader": "^4.0.2",
     "textures": "^1.0.4"
   },
   "devDependencies": {
@@ -42,6 +39,7 @@
     "babel-preset-react": "6.16.0",
     "babel-runtime": "^6.18.0",
     "css-loader": "0.26.0",
+    "dsv-loader": "^1.1.0",
     "eslint": "^3.9.1",
     "eslint-config-airbnb": "^13.0.0",
     "eslint-plugin-import": "^2.1.0",
@@ -50,6 +48,9 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "0.9.0",
     "html-webpack-plugin": "^2.24.1",
+    "json-loader": "^0.5.4",
+    "node-sass": "^3.13.0",
+    "sass-loader": "^4.0.2",
     "postcss-loader": "^1.1.1",
     "react-hot-loader": "^3.0.0-beta.6",
     "style-loader": "0.13.1",
