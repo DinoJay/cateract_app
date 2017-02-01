@@ -21,8 +21,9 @@ class Comp extends React.Component {
   }
 
   componentDidMount() {
-    d3.csv('testData.csv', (error, data) => {
+    d3.json('testData.json', (error, data) => {
       if (error) throw error;
+      console.log('data', data);
       const svg = d3.select(ReactDOM.findDOMNode(this));
       create(svg, data);
     });

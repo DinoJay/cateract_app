@@ -22,7 +22,7 @@ const delay = 700;
 
 const paddingScale = d3.scaleOrdinal()
   .domain(['years', 'months', 'weeks', 'days', 'hours'])
-  .range([10, 2, 2, 1, 1]);
+  .range([16, 8, 8, 8, 7]);
 
 const arrowSize = d3.scaleOrdinal()
   .domain(['years', 'months', 'weeks', 'days', 'hours'])
@@ -30,11 +30,14 @@ const arrowSize = d3.scaleOrdinal()
 
 const protColor = d3.scaleOrdinal()
     .domain(keys)
-    .range(d3.schemeCategory10);
+    .range(['rgb(55, 126, 184)', 'rgb(77, 175, 74)', 'rgb(166, 86, 40)']);
 
 const protIconScale = d3.scaleOrdinal()
                         .domain(keys)
                         .range([shieldSrc, glassesSrc, cabinSrc]);
+
+
+const radColors = ['#ffff00', '#ffe600', '#ffcd00', '#ffb400', '#ff9900', '#ff7a00', '#ff5300', '#ff0000'];
 
 d3.selection.prototype.tspans = function(lines, lh) {
   return this.selectAll('tspan')
@@ -81,7 +84,7 @@ function aggregate(data, timeInterval) {
     });
 }
 
-function arrow(width, totalHeight, arrH) {
+function arrowLine(width, totalHeight, arrH) {
   const height = totalHeight;
   const data = [
     [-width / 2, height - arrH],
@@ -94,11 +97,37 @@ function arrow(width, totalHeight, arrH) {
   return d3.line()(data);
 }
 
-function intervalBefore(intervalKey) {
+function linkSeg(l) {
+  const points = [
+                [l.source.x, l.source.y + l.source.height],
+                [l.source.x, l.source.y],
+                [l.source.x + l.source.width, l.source.y],
+                [l.source.x + l.source.width, l.source.y + l.source.height],
+                // [l.source.x, l.source.y + l.source.height],
+
+                [l.target.x + l.target.width, l.target.y],
+                [l.target.x + l.target.width, l.target.y + l.target.height],
+                [l.target.x, l.target.y + l.target.height],
+                [l.target.x, l.target.y]
+  ];
+  return d3.line()(points);
+}
+function prevInterval(intervalKey) {
   switch (intervalKey) {
   case 'months': return d3.timeYear;
   case 'weeks': return d3.timeMonth;
   case 'days': return d3.timeWeek;
+  case 'hours': return d3.timeDay;
+  default: return d3.timeHour;
+  }
+}
+
+function nextInterval(intervalKey) {
+  switch (intervalKey) {
+  case 'years': return d3.timeYear;
+  case 'months': return d3.timeWeek;
+  case 'weeks': return d3.timeDay;
+  case 'days': return d3.timHour;
   case 'hours': return d3.timeDay;
   default: return d3.timeHour;
   }
@@ -145,23 +174,20 @@ function d3TimeSwitch(data, startDate, endDate) {
   }
 }
 
+const eye = 'leftEye';
 function preprocess(d) {
+  console.log('d', d);
   d.date = parseDate(d.date);
 
-  d.protections = [
-    { key: 'equipment', value: parseFloat(d.usedEquipment) },
-    { key: 'shield', value: parseFloat(d.ceilingShield) },
-    { key: 'glasses', value: parseFloat(d.leadGlasses) },
-    { key: 'cabin', value: parseFloat(d.radiationProtectionCabin) }
-    // { key: 'no protections', value: 1 }
-  ];
+  // d.shield = parseFloat(d.shield);
+  // d.glasses = parseFloat(d.glasses);
+  // d.cabin = parseFloat(d.cabin);
 
-  d.totalProtection = parseFloat(d.ceilingShield)
-    + parseFloat(d.leadGlasses) + parseFloat(d.radiationProtectionCabin);
+  d.protection = d[eye].protection;
+  d.totalProtection = d.protection.shield
+    + d.protection.glasses + d.protection.cabin;
 
-  d.radiation = 1 - d.totalProtection;
-
-  d.equipment = parseFloat(d.usedEquipment);
+  d.radiation = d[eye].radiation;
 
   return d;
 }
@@ -174,17 +200,17 @@ function update(data, dim, yDate) {
     nestInterval
   } = { ...d3TimeSwitch(data, ...yDate.domain()), yDate };
 
-  console.log('timeInterval', intervalKey, 'timeDomain', yDate.domain());
+  // console.log('timeInterval', intervalKey, 'timeDomain', yDate.domain());
   const nestedData = aggregate(data, nestInterval);
+  console.log('nestedData', nestedData);
 
   const [startDate, endDate] = yDate.domain();
   const barHeight = yDate(startDate) - yDate(nestInterval.offset(startDate, -1));
-  const symbols = d3.scaleOrdinal()
-    .range(extraSymbols);
-
+  // const symbols = d3.scaleOrdinal()
+  //   .range(extraSymbols);
 
   const barPadding = paddingScale(intervalKey);
-  (function protectionBars() {
+  (function protBars() {
     // const axis = d3.select('.prot-axis').call(d3.axisTop(d3.scaleLinear()
     //   .rangeRound([dim.width / 2 + dim.centerWidth / 2, dim.width])
     //   .domain([0, 1])
@@ -201,32 +227,72 @@ function update(data, dim, yDate) {
     //   .text('Protection');
 
     const barWidth = d3.scaleLinear()
-      .range([dim.width / 2 + dim.centerWidth / 2, dim.width])
-      .domain([0, 1]);
+      .domain([0, 1])
+      .range([0, dim.width / 2]);
+
+    console.log('bar width range', barWidth.range());
 
     const stacked = d3.stack()
       .keys(keys)
-      .value((a, key) => d3.sum(a.values, e => e.protections.find(b => b.key === key)
-          .value) / a.values.length)(nestedData);
+      .value((a, key) => d3.sum(a.values, e => e.protection[key]) / a.values.length)(nestedData);
 
     stacked.forEach((layer) => {
       layer.forEach((d) => {
-        d.y = yDate(d.data.date) + barPadding / 2;
+        d.y = yDate(d.data.date);
         d.x = barWidth(d[0]);
         d.width = barWidth(d[1]) - barWidth(d[0]);
         d.height = barHeight - barPadding;
       });
     });
 
-    symbols.domain(['CA', 'CA+PCI', 'PVI', 'PM-Implantation']);
+    const links = stacked.map(layer => layer.slice(2).reduce((acc, cur) => {
+      const last = acc[acc.length - 1].target;
+      return acc.concat([{
+        source: last,
+        target: cur,
+        key: layer.key
+      }]);
+    }, [{
+      key: layer.key,
+      source: layer[0],
+      target: layer[1]
+    }])
+      );
 
-    const protLayer = d3.select('g.right').selectAll('.prot-layer')
+    const protLinkLayer = d3.select('.right').selectAll('.prot-link-layer')
+        .data(links);
+
+    protLinkLayer.enter()
+        .append('g')
+        .attr('class', 'prot-link-layer');
+
+    protLinkLayer.exit().remove();
+
+    const protLinkPath = protLinkLayer.selectAll('.link')
+        .data(d => d);
+
+    const protLinkPathEnter = protLinkPath.enter()
+        .append('path')
+        .attr('class', 'link')
+        .attr('fill', d => protColor(d.key))
+        .attr('opacity', 0.3);
+
+    protLinkPath.merge(protLinkPathEnter)
+        .transition()
+        .duration(delay)
+        .attr('d', linkSeg);
+
+    protLinkPath.exit().remove();
+
+
+    // symbols.domain(['CA', 'CA+PCI', 'PVI', 'PM-Implantation']);
+
+    const protLayer = d3.select('.right').selectAll('.prot-layer')
     // TODO: find correct
       .data(stacked, (d, i) => `prots${intervalKey}+${i}`);
 
     protLayer.exit().remove();
 
-    // .curve(d3.curveStepBefore);
 
     const protLayerEnter = protLayer
       .enter()
@@ -256,73 +322,16 @@ function update(data, dim, yDate) {
       .attr('y', function() { return d3.select(this).attr('y'); })
       .transition()
       .duration(delay)
-      .attr('y', d => yDate(d.data.date) + barPadding / 2)
-      .attr('x', d => barWidth(d[0]))
-      .attr('width', d => barWidth(d[1]) - barWidth(d[0]))
-      .attr('height', barHeight - barPadding);
+      .attr('y', d => d.y)
+      .attr('x', d => d.x)
+      .attr('width', d => d.width)
+      .attr('height', d => d.height);
 
     protSeg.exit().remove();
 
     (function linkData() {
       // keys.forEach((key) => {
         // const seg = d3.selectAll('.prot-seg').filter(d => d.data.key === key);
-      const links = stacked.map(layer => layer.slice(2).reduce((acc, cur) => {
-        const last = acc[acc.length - 1].target;
-        return acc.concat([{
-          source: last,
-          target: cur,
-          key: layer.key
-        }]);
-      }, [{
-        key: layer.key,
-        source: layer[0],
-        target: layer[1]
-      }])
-      );
-      console.log('links', links);
-
-      function linkSeg(l) {
-        const points = [
-                [l.source.x, l.source.y + l.source.height],
-                [l.source.x, l.source.y],
-                [l.source.x + l.source.width, l.source.y],
-                [l.source.x + l.source.width, l.source.y + l.source.height],
-                // [l.source.x, l.source.y + l.source.height],
-
-                [l.target.x + l.target.width, l.target.y],
-                [l.target.x + l.target.width, l.target.y + l.target.height],
-                [l.target.x, l.target.y + l.target.height],
-                [l.target.x, l.target.y]
-        ];
-        return d3.line()(points);
-      }
-
-      const linkLayer = d3.select('.right').selectAll('.link-layer')
-        .data(links);
-
-      const linkLayerEnter = linkLayer.enter()
-        .append('g')
-        .attr('class', 'link-layer');
-
-      linkLayer.exit().remove();
-
-      const linkLine = linkLayer.selectAll('path')
-        .data(d => d);
-
-      const linkLineEnter = linkLine.enter()
-        .append('path')
-        .attr('class', 'link')
-        .attr('fill', d => protColor(d.key))
-        .attr('opacity', 0.5);
-        // .style('stroke', 'black');
-
-        // .style('stroke-width', l => y(l.value))
-      linkLine.merge(linkLineEnter)
-        .transition()
-        .duration(delay)
-        .attr('d', linkSeg);
-
-      linkLine.exit().remove();
 
       // });
     }());
@@ -342,7 +351,7 @@ function update(data, dim, yDate) {
 
     function initTransform(n) {
       const dateDict = yAxis.exit().data().map((d) => {
-        const count = intervalBefore(intervalKey)
+        const count = prevInterval(intervalKey)
             .count(d3.min([d.date, n.date]), d3.max([d.date, n.date]));
         return { date: d.date, value: count };
       });
@@ -375,7 +384,9 @@ function update(data, dim, yDate) {
         .attr('opacity', 0.4)
         .attr('stroke', 'grey')
         .on('click', (d) => {
-          const timeDomain = [tickInterval.floor(d.date), tickInterval.offset(d.date, 1)];
+          const interval = nextInterval(intervalKey);
+          console.log('intervalStr', intervalKey);
+          const timeDomain = [tickInterval.floor(d.date), interval.ceil(tickInterval.offset(d.date, 1))];
           const yDateCopy = yDate.copy().domain(timeDomain);
           // context.select('.brush').call(brush.move, brushScale.range().map(t.invertX, t));
           update(data, dim, yDateCopy);
@@ -399,7 +410,7 @@ function update(data, dim, yDate) {
       enterUpdateG.select('path')
         .transition()
         .duration(delay)
-        .attr('d', d => arrow(width, tickHeight(d.date), arrowSize(intervalKey)))
+        .attr('d', d => arrowLine(width, tickHeight(d.date), arrowSize(intervalKey)))
         .attr('height', d => tickHeight(d.date))
         .attr('width', width);
 
@@ -457,9 +468,9 @@ function update(data, dim, yDate) {
   //
 
   (function radiationBars() {
-    const radDose = d3.scaleLinear()
-    .domain(d3.extent(nestedData, d => d.totalRadiation))
-    .range(['#ffff00', '#ff0000']);
+    // const radDose = d3.scaleLinear()
+    // .domain(d3.extent(nestedData, d => d.totalRadiation))
+    // .range(['#ffff00', '#ff0000']);
     // const stack = d3.stack();
     // stack
     //   .keys(keys)
@@ -480,6 +491,13 @@ function update(data, dim, yDate) {
     const radBar = d3.select('.left').selectAll('.rad-bar')
       .data(nestedData, (d, i) => `rad${intervalKey}+${i}`);
 
+    nestedData.forEach((d) => {
+      d.x = radBarWidth(d.totalRadiation);
+      d.y = yDate(d.date);
+      d.width = radBarWidth(0) - radBarWidth(d.totalRadiation);
+      d.height = barHeight - barPadding;
+    });
+
     const radBarEnter = radBar.enter()
     // .append('g')
     // .attr('class', 'rad-cont')
@@ -497,47 +515,65 @@ function update(data, dim, yDate) {
       .attr('y', function() { return d3.select(this).attr('y'); })
       .transition()
       .duration(delay)
-      .attr('x', d => radBarWidth(d.totalRadiation))
-      .attr('y', d => yDate(d.date) + barPadding / 2)
-      .attr('width', d => radBarWidth(0) - radBarWidth(d.totalRadiation))
-      .attr('height', barHeight - barPadding)
-      .style('fill', d => radDose(d.totalRadiation));
+      .attr('x', d => d.x)
+      .attr('y', d => d.y)
+      .attr('width', d => d.width)
+      .attr('height', d => d.height)
+      // .style('fill', d => radDose(d.totalRadiation));
+      .style('fill', 'url(#full-gradient)');
 
     radBar.exit().remove();
 
-    d3.select('.rad-axis')
-    // .attr('transform', `translate(0,${height})`)
-      .call(d3.axisTop(radBarWidth))
-    // .transition().duration(1500)
-    // .ease('sin-in-out')
-      .append('text')
-    // .attr('x', 2)
-      .attr('dy', -30)
-      .attr('dx', 35)
-    // .attr('text-anchor', 'middle')
-      .attr('fill', '#000')
-      .attr('font-size', 15)
-      .attr('font-weight', 'bold')
-      .text('Radiation');
+
+    const radLinks = nestedData.slice(2).reduce((acc, cur) => {
+      const last = acc[acc.length - 1].target;
+      return acc.concat([{
+        source: last,
+        target: cur
+      }]);
+    }, [{
+      source: nestedData[0],
+      target: nestedData[1]
+    }]);
+
+    console.log('radLinks', radLinks);
+    const radLinkLine = d3.select('.left').selectAll('.rad-link')
+        .data(radLinks);
+
+    const radLinkLineEnter = radLinkLine.enter()
+        .append('path')
+        .attr('class', 'rad-link')
+        .style('fill', 'url(#full-gradient)')
+        .attr('opacity', 0.3);
+        // .style('stroke', 'black');
+
+        // .style('stroke-width', l => y(l.value))
+    radLinkLine.merge(radLinkLineEnter)
+        .transition()
+        .duration(delay)
+        .attr('d', linkSeg);
+
+    radLinkLine.exit().remove();
   }());
 }
 
 function create(svg, rawData) {
   const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
+  console.log('data', data);
   // const svg = d3.select('#app').append('svg')
-  //           .attr('width', 1200)
+  //           .attr('width', 1a00)
   //           .attr('height', 800);
 
-  const brushHeight = 50;
   const brushHandleSize = 40;
 
-  const brushMargin = 40;
+  const brushHeight = 50;
+  const brushMargin = 65;
   const legendHeight = 35;
   const legendMargin = 10;
 
   const outerMargin = { top: 0, right: 10, bottom: 0, left: 10 };
 
-  const margin = {
+  const innerMargin = {
     top: brushHeight + brushMargin + legendHeight + legendMargin,
     right: 0,
     bottom: 0,
@@ -546,16 +582,64 @@ function create(svg, rawData) {
 
   const width = +svg.attr('width') - outerMargin.left - outerMargin.right;
   const height = +svg.attr('height') - outerMargin.top - outerMargin.bottom;
-  const subHeight = height - margin.top - margin.bottom;
-  // const subWidth = height - margin.left - margin.right;
+  const subHeight = height - innerMargin.top - innerMargin.bottom;
+  // const subWidth = height - innerMargin.left - innerMargin.right;
   const centerWidth = 50;
 
-  const dim = { width, height, centerWidth, margin };
+  const dim = { width, height, centerWidth, innerMargin };
 
 
   // const radDose = d3.scaleQuantile()
   // .domain([d3.extent(data, d => d.radiation)])
   // .range(['yellow', 'orange', 'red']);
+
+
+  const defs = svg.append('svg:defs');
+
+  defs.append('linearGradient')
+      .attr('id', 'full-gradient')
+      .attr('gradientUnits', 'userSpaceOnUse')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '60%')
+      .attr('y2', '0%')
+      .selectAll('stop')
+      .data(radColors.reverse())
+      .enter()
+    .append('stop')
+      .attr('offset', (d, i) => i / (radColors.length - 1))
+      .attr('stop-color', d => d);
+
+  const radLegendData = radColors.reverse().slice(1)
+    .reduce((acc, d, i) => {
+      const last = acc[acc.length - 1];
+      if (i % 2 === 0) {
+        last.push(d);
+      } else {
+        acc.push([d]);
+      }
+      return acc;
+    }, [[radColors[0]]]);
+
+// radColors.reverse()
+  defs.selectAll('.gradient')
+    .data(radLegendData.reverse())
+    .enter()
+    .append('linearGradient')
+      .attr('class', 'gradient')
+      .attr('id', (_, i) => `gradient-${i}`)
+      .attr('gradientUnits', 'userSpaceOnUse')
+      .attr('x1', '11%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '0%')
+      .selectAll('stop')
+      .data(d => d)
+      .enter()
+    .append('stop')
+      .attr('offset', (d, i) => (i === 0 ? '0%' : '100%'))
+      .attr('stop-color', d => d);
+//
 
   const cont = svg
     .append('g')
@@ -572,79 +656,171 @@ function create(svg, rawData) {
   const subCont = cont
     .append('g')
     .attr('class', 'sub-cont')
-    .attr('transform', `translate(${0},${margin.top})`);
+    .attr('transform', `translate(${0},${innerMargin.top})`);
 
   subCont.append('g')
-    .attr('class', 'prot-axis axis-x')
+    .attr('class', 'prot-axis')
   // .attr('transform', `translate(0,${0})`);
     .attr('transform', `translate(0,${-10})`);
 
-  const iconWidth = (width / 2 - centerWidth / 2) / keys.length;
-  const iconHeight = 40;
 
-  (function protLegend() {
-    const iconCont = cont.append('g')
+  (function createProtLegend() {
+    const iconWidth = (width / 2 - centerWidth / 2) / keys.length;
+    const protLegend = cont.append('g')
     .attr('class', 'protection-legend')
     .attr('transform', `translate(${width / 2 + centerWidth / 2},${brushHeight + brushMargin})`);
-    const iconG = iconCont.selectAll('.icon')
+
+    protLegend.append('text')
+      .attr('dy', -10)
+      .attr('dx', width / 2 - centerWidth / 2)
+    .attr('text-anchor', 'end')
+      .attr('fill', '#000')
+      .attr('font-size', 15)
+      .attr('font-weight', 'bold')
+      .text('Protection');
+
+    const protIcon = protLegend.selectAll('.prot-icon')
           .attr('width', iconWidth)
-          .attr('height', iconHeight)
+          .attr('height', legendHeight)
           .data(keys)
           .enter()
           .append('g')
-          .attr('class', 'icon')
+          .attr('class', 'prot-icon')
           .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
 
-    iconG.append('rect')
+    protIcon.append('rect')
           .attr('width', iconWidth)
-          .attr('height', iconHeight)
-          .attr('rx', 12)
-          .attr('ry', 12)
+          .attr('height', legendHeight)
+          .attr('rx', 4)
+          .attr('ry', 4)
           .attr('fill', protColor);
 
-    iconG
+    protIcon
         .append('image')
           .attr('width', iconWidth)
-          .attr('height', iconHeight)
+          .attr('height', legendHeight)
         .attr('xlink:href', protIconScale);
   }());
 
-  (function radLegend() {
+  (function createRadLegend() {
+    // const x = d3.scale.linear()
+    // .domain([0, 1]);
+
     const maxRad = d3.extent(data, d => d.radiation)[1];
 
-    const stepNum = 3;
+    const iconWidth = (width / 2 - centerWidth / 2) / radLegendData.length;
+
+    const stepNum = 4;
+    // const iconWidth = (width / 2 - centerWidth / 2) / stepNum;
+    // const maxRad = d3.extent(data, d => d.radiation)[1];
+
     const step = maxRad / stepNum;
-    const da = d3.range(step, maxRad + step, step);
+    const range = d3.range(step, maxRad + step, step);
 
-    const quants = da.slice(1).reduce((acc, d) => {
-      const last = acc[acc.length - 1];
-      return acc.concat([{ start: last.end, end: d }]);
-    }, [{ start: 0, end: da[0] }]);
+    const quantiles = range.slice(1)
+      .reduce((acc, d) => acc.concat([{ start: acc[acc.length - 1].end, end: d }]),
+        [{ start: 0, end: range[0] }]);
 
-    console.log('data', data);
-    const radScale = d3.scaleOrdinal()
-    .domain(quants.map(d => d.end))
-    .range(['yellow', 'orange', 'red'].reverse());
 
-    const iconCont = cont.append('g')
-    .attr('class', 'radiation-legend')
-    .attr('transform', `translate(${0},${brushHeight + brushMargin})`);
+    const radLegend = cont.append('g')
+      .attr('class', 'rad-legend')
+      .attr('transform', `translate(${0},${brushHeight + brushMargin})`);
 
-    const iconG = iconCont.selectAll('.icon')
-          .attr('width', iconWidth)
-          .attr('height', iconHeight)
-          .data(quants)
-          .enter()
-          .append('g')
-          .attr('class', 'icon')
-          .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
 
-    iconG.append('rect')
-          .attr('width', iconWidth)
-          .attr('height', iconHeight)
-          .attr('rx', 12)
-          .attr('ry', 12)
-          .attr('fill', d => radScale(d.end));
+    radLegend.append('rect')
+    .attr('width', width / 2 - centerWidth / 2)
+    .attr('height', legendHeight)
+    .style('fill', 'url(#full-gradient)');
+// make legend
+
+    radLegend.append('text')
+      .attr('dy', -10)
+      // .attr('dx', width / 2 - centerWidth / 2)
+      // .attr('text-anchor', 'end')
+      .attr('fill', '#000')
+      .attr('font-size', 15)
+      .attr('font-weight', 'bold')
+      .text('Radiation');
+// make legend box
+    // const lb = legend.append('rect')
+    // .attr('transform', `translate (0,${titleheight})`);
+    // .attr('class', 'legend-box')
+    // .attr('width', boxwidth)
+    // .attr('height', ranges * lineheight + 2 * boxmargin + lineheight - keyheight);
+
+// make quantized key legend items
+    const li = radLegend.append('g')
+    // .attr('transform', `translate (8,${titleheight + })`)
+    .attr('class', 'legend-items');
+
+    const g = li.selectAll('g')
+    .data(quantiles.reverse())
+    .enter()
+    .append('g')
+    .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
+
+    g.append('rect')
+    // .attr('y', (d, i) => i * 20 + 20 - 20)
+    .attr('width', iconWidth)
+    .attr('height', legendHeight)
+    .attr('rx', 4)
+    .attr('ry', 4)
+    .attr('stroke', 'black')
+    .attr('stroke-width', 0.5)
+    .style('fill', 'none');
+    // .style('fill', (d, i) => `url(#gradient-${i})`);
+
+    g.append('text')
+      // .append('tspan')
+      .text(d => `> ${Math.round(d.end * 100) / 100}`)
+      .style('text-anchor', 'middle')
+      .attr('alignment-baseline', 'middle')
+      .attr('font-size', 13)
+      .attr('transform', function() {
+        const parbbox = this.parentNode.getBBox();
+        const bbox = this.getBBox();
+        console.log('bbox', bbox);
+        return `translate(${parbbox.width / 2 - bbox.width / 4},${parbbox.height / 2 - bbox.height / 4})`;
+      });
+
+
+    //
+    // const radScale = d3.scaleQuantize()
+    // .domain(quantiles.map(d => d.end))
+    // .range(['yellow', 'orange', 'red'].reverse());
+    //
+    // const radLegend = cont.append('g')
+    // .attr('class', 'radiation-legend')
+    // .attr('transform', `translate(${0},${brushHeight + brushMargin})`);
+    //
+    // radLegend
+    //   .append('text')
+    // // .attr('x', 2)
+    //   .attr('dy', -10)
+    //   // .attr('dx', 35)
+    // // .attr('text-anchor', 'middle')
+    //   .attr('fill', '#000')
+    //   .attr('font-size', 15)
+    //   .attr('font-weight', 'bold')
+    //   .text('Radiation');
+    //
+    // const iconG = radLegend.selectAll('.icon')
+    //       .attr('width', iconWidth)
+    //       .attr('height', iconHeight)
+    //       .data(quantiles)
+    //       .enter()
+    //       .append('g')
+    //       .attr('class', 'icon')
+    //       .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
+    //
+    // iconG.append('rect')
+    //       .attr('width', iconWidth)
+    //       .attr('height', iconHeight)
+    //       // .attr('rx', 12)
+    //       // .attr('ry', 12)
+    //       .attr('fill', d => radScale(d.end));
+    //       // .style('fill', 'url(#full-gradient)');
+
 
     // iconG
     //     .append('image')
@@ -654,9 +830,9 @@ function create(svg, rawData) {
   }());
 
   // subCont.append('g')
-  //   .attr('class', 'rad-axis axis-x')
+  //   .attr('class', 'rad-axis')
   // // .attr('transform', `translate(0,${-20})`);
-  //   .attr('transform', `translate(0,${-10})`);
+  //   .attr('transform', `translate(0,${-60})`);
 
   const gMain = subCont.append('g')
     .attr('class', 'main')
@@ -676,9 +852,10 @@ function create(svg, rawData) {
     .attr('transform', `translate(${width / 2},${0})`);
 
   gMain.append('g')
-    .attr('class', 'right');
+    .attr('class', 'right')
   // .attr('clip-path', 'url(#clip)');
   // .attr('transform', `translate(${0},${0})`);
+    .attr('transform', `translate(${width / 2 + centerWidth / 2},${0})`);
 
   gCenter.append('g')
     .attr('class', 'date-axis');
@@ -768,7 +945,8 @@ function create(svg, rawData) {
     // yDate2 = yDate.copy();
     yDate.domain(t.rescaleX(yDate2).domain());
     update(data, dim, yDate);
-    context.select('.brush').call(brush.move, brushScale.range().map(t.invertX, t));
+    context.select('.brush')
+      .call(brush.move, brushScale.range().map(t.invertX, t));
   }
 
   const zoomHandler = d3.zoom()
@@ -815,7 +993,7 @@ function create(svg, rawData) {
   //   .attr('height', subHeight)
   // // .attr('fill', 'none')
   //   .attr('opacity', 0.1)
-  //   .attr('transform', `translate(${margin.left},${margin.top})`)
+  //   .attr('transform', `translate(${innerMargin.left},${innerMargin.top})`)
   //   .call(zoomHandler);
   //
   d3.select('.brush')
