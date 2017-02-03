@@ -19,13 +19,9 @@
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.5",
     "d3": "^4.4.0",
-    "d3-jetpack": "^1.0.2",
     "d3-symbol-extra": "^0.1.0",
-    "materialize-css": "^0.97.8",
-    "materialize-sass": "^0.95.2",
     "react": "15.4.1",
-    "react-dom": "15.4.1",
-    "textures": "^1.0.4"
+    "react-dom": "15.4.1"
   },
   "devDependencies": {
     "babel-core": "6.18.2",

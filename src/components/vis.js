@@ -3,17 +3,16 @@ import * as d3 from 'd3';
 // import textures from 'textures';
 
 // import { dateDiff } from './lib/utils';
-import * as moreSymbols from 'd3-symbol-extra';
+// import * as moreSymbols from 'd3-symbol-extra';
 
-import '../global_styles/style.scss';
+// import '../global_styles/style.scss';
 import cabinSrc from './cabin.png';
 import glassesSrc from './glasses.png';
 import shieldSrc from './shield.png';
 
-const extraSymbols = Object.values(moreSymbols).reverse();
-const timeFormatStr = '%d/%m/%Y';
+// const extraSymbols = Object.values(moreSymbols).reverse();
+// const timeFormatStr = '%d/%m/%Y';
 // const formatDate = d3.timeFormat(timeFormatStr);
-const parseDate = d3.timeParse(timeFormatStr);
 
 const keys = ['shield', 'glasses', 'cabin'];
 const formatTime = d3.timeFormat('%Y/%m/%d %H:%M:%S %Z');
@@ -22,7 +21,7 @@ const delay = 700;
 
 const paddingScale = d3.scaleOrdinal()
   .domain(['years', 'months', 'weeks', 'days', 'hours'])
-  .range([16, 8, 8, 8, 7]);
+  .range([16, 8, 2, 2, 7]);
 
 const arrowSize = d3.scaleOrdinal()
   .domain(['years', 'months', 'weeks', 'days', 'hours'])
@@ -78,7 +77,7 @@ function aggregate(data, timeInterval) {
     .entries(data)
     .map((e) => {
       e.date = new Date(e.key);
-      e.totalProtection = d3.sum(e.values, a => a.totalProtection) / e.values.length;
+      // e.totalProtection = d3.sum(e.values, a => a#<{(| .t |)}>#otalProtection) / e.values.length;
       e.totalRadiation = d3.sum(e.values, a => a.radiation) / e.values.length;
       return e;
     });
@@ -143,7 +142,7 @@ function d3TimeSwitch(data, startDate, endDate) {
       nestInterval: d3.timeHour,
       timeFormat: d3.timeFormat('%I %p')
     };
-  case (d3.timeDay.count(startDate, endDate) <= 10):
+  case (d3.timeDay.count(startDate, endDate) <= 15):
     return {
       intervalKey: 'days',
       tickInterval: d3.timeDay,
@@ -174,37 +173,25 @@ function d3TimeSwitch(data, startDate, endDate) {
   }
 }
 
-const eye = 'leftEye';
-function preprocess(d) {
-  console.log('d', d);
-  d.date = parseDate(d.date);
 
-  // d.shield = parseFloat(d.shield);
-  // d.glasses = parseFloat(d.glasses);
-  // d.cabin = parseFloat(d.cabin);
-
-  d.protection = d[eye].protection;
-  d.totalProtection = d.protection.shield
-    + d.protection.glasses + d.protection.cabin;
-
-  d.radiation = d[eye].radiation;
-
-  return d;
-}
-
-function update(data, dim, yDate) {
+function update(data, dim, yDate, brush, brushScale) {
+  // const selData = data.map(preselect);
+  //
+  const [startDate, endDate] = d3.extent(data, d => d.date);
+  //
   const {
     intervalKey,
     tickInterval,
     timeFormat,
     nestInterval
   } = { ...d3TimeSwitch(data, ...yDate.domain()), yDate };
+  // yDate.domain([tickInterval.floor(startDate), tickInterval.offset(endDate, 1)]);
 
-  // console.log('timeInterval', intervalKey, 'timeDomain', yDate.domain());
+  console.log('yDate domain', yDate.domain());
+
   const nestedData = aggregate(data, nestInterval);
-  console.log('nestedData', nestedData);
 
-  const [startDate, endDate] = yDate.domain();
+  // const [startDate, endDate] = yDate.domain();
   const barHeight = yDate(startDate) - yDate(nestInterval.offset(startDate, -1));
   // const symbols = d3.scaleOrdinal()
   //   .range(extraSymbols);
@@ -229,8 +216,6 @@ function update(data, dim, yDate) {
     const barWidth = d3.scaleLinear()
       .domain([0, 1])
       .range([0, dim.width / 2]);
-
-    console.log('bar width range', barWidth.range());
 
     const stacked = d3.stack()
       .keys(keys)
@@ -341,9 +326,9 @@ function update(data, dim, yDate) {
     const margin = 15;
     const width = dim.centerWidth - margin;
     const tickHeight = d => yDate(tickInterval.offset(d, 1)) - yDate(d);
-
+    const trange = [tickInterval.floor(yDate.domain()[0]), tickInterval.ceil(yDate.domain()[1])];
     const timeData = tickInterval
-      .range(...[tickInterval.floor(startDate), tickInterval.ceil(endDate)])
+      .range(...trange)
       .map(d => ({ key: timeFormat(d), date: d }));
 
     const yAxis = d3.select('.date-axis').selectAll('.time-tick')
@@ -385,17 +370,20 @@ function update(data, dim, yDate) {
         .attr('stroke', 'grey')
         .on('click', (d) => {
           const interval = nextInterval(intervalKey);
-          console.log('intervalStr', intervalKey);
-          const timeDomain = [tickInterval.floor(d.date), interval.ceil(tickInterval.offset(d.date, 1))];
-          const yDateCopy = yDate.copy().domain(timeDomain);
-          // context.select('.brush').call(brush.move, brushScale.range().map(t.invertX, t));
-          update(data, dim, yDateCopy);
+
+          const timeDomain = [tickInterval.floor(d.date),
+            tickInterval.ceil(tickInterval.offset(d.date, 1))];
+          console.log('timeDomain', timeDomain);
+
+          d3.select('.context').select('.brush')
+            .transition()
+            .duration(100)
+            .call(brush.move, timeDomain.map(brushScale));
         });
 
       return gEnter;
     }());
 
-    d3.selectAll('*').on('mouseover', d => console.log('mouseover', d));
 
     yAxis
       .attr('transform', function() {
@@ -536,7 +524,6 @@ function update(data, dim, yDate) {
       target: nestedData[1]
     }]);
 
-    console.log('radLinks', radLinks);
     const radLinkLine = d3.select('.left').selectAll('.rad-link')
         .data(radLinks);
 
@@ -557,42 +544,27 @@ function update(data, dim, yDate) {
   }());
 }
 
-function create(svg, rawData) {
-  const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
-  console.log('data', data);
-  // const svg = d3.select('#app').append('svg')
-  //           .attr('width', 1a00)
-  //           .attr('height', 800);
 
-  const brushHandleSize = 40;
-
-  const brushHeight = 50;
-  const brushMargin = 65;
-  const legendHeight = 35;
-  const legendMargin = 10;
-
-  const outerMargin = { top: 0, right: 10, bottom: 0, left: 10 };
-
-  const innerMargin = {
-    top: brushHeight + brushMargin + legendHeight + legendMargin,
-    right: 0,
-    bottom: 0,
-    left: 0
-  };
-
-  const width = +svg.attr('width') - outerMargin.left - outerMargin.right;
-  const height = +svg.attr('height') - outerMargin.top - outerMargin.bottom;
-  const subHeight = height - innerMargin.top - innerMargin.bottom;
-  // const subWidth = height - innerMargin.left - innerMargin.right;
-  const centerWidth = 50;
-
-  const dim = { width, height, centerWidth, innerMargin };
+function create(el, dim, data) {
+  const {
+  width,
+  height,
+  subHeight,
+  centerWidth,
+  innerMargin,
+  brushHandleSize,
+  brushHeight,
+  brushMargin,
+  legendHeight,
+  // legendMargin,
+  outerMargin
+  // innerMargin
+} = dim;
 
 
-  // const radDose = d3.scaleQuantile()
-  // .domain([d3.extent(data, d => d.radiation)])
-  // .range(['yellow', 'orange', 'red']);
-
+  const svg = el.append('svg')
+                  .attr('width', width)
+                  .attr('height', height);
 
   const defs = svg.append('svg:defs');
 
@@ -648,7 +620,6 @@ function create(svg, rawData) {
 
   const context = cont.append('g')
     .attr('class', 'context');
-
 
   const gBrush = context.append('g')
     .attr('class', 'brush');
@@ -721,13 +692,8 @@ function create(svg, rawData) {
       .reduce((acc, d) => acc.concat([{ start: acc[acc.length - 1].end, end: d }]),
         [{ start: 0, end: range[0] }]);
 
-
     const radLegend = cont.append('g')
-      .attr('class', 'rad-legend')
-      .attr('transform', `translate(${0},${brushHeight + brushMargin})`);
-
-
-    radLegend.append('rect')
+      .attr('class', 'rad-legend').attr('transform', `translate(${0},${brushHeight + brushMargin})`); radLegend.append('rect')
     .attr('width', width / 2 - centerWidth / 2)
     .attr('height', legendHeight)
     .style('fill', 'url(#full-gradient)');
@@ -741,16 +707,10 @@ function create(svg, rawData) {
       .attr('font-size', 15)
       .attr('font-weight', 'bold')
       .text('Radiation');
-// make legend box
-    // const lb = legend.append('rect')
-    // .attr('transform', `translate (0,${titleheight})`);
-    // .attr('class', 'legend-box')
-    // .attr('width', boxwidth)
-    // .attr('height', ranges * lineheight + 2 * boxmargin + lineheight - keyheight);
 
-// make quantized key legend items
+  // make quantized key legend items
     const li = radLegend.append('g')
-    // .attr('transform', `translate (8,${titleheight + })`)
+    // .attr('transform', `translate (8,${titleheight + })`) return;
     .attr('class', 'legend-items');
 
     const g = li.selectAll('g')
@@ -779,60 +739,9 @@ function create(svg, rawData) {
       .attr('transform', function() {
         const parbbox = this.parentNode.getBBox();
         const bbox = this.getBBox();
-        console.log('bbox', bbox);
         return `translate(${parbbox.width / 2 - bbox.width / 4},${parbbox.height / 2 - bbox.height / 4})`;
       });
-
-
-    //
-    // const radScale = d3.scaleQuantize()
-    // .domain(quantiles.map(d => d.end))
-    // .range(['yellow', 'orange', 'red'].reverse());
-    //
-    // const radLegend = cont.append('g')
-    // .attr('class', 'radiation-legend')
-    // .attr('transform', `translate(${0},${brushHeight + brushMargin})`);
-    //
-    // radLegend
-    //   .append('text')
-    // // .attr('x', 2)
-    //   .attr('dy', -10)
-    //   // .attr('dx', 35)
-    // // .attr('text-anchor', 'middle')
-    //   .attr('fill', '#000')
-    //   .attr('font-size', 15)
-    //   .attr('font-weight', 'bold')
-    //   .text('Radiation');
-    //
-    // const iconG = radLegend.selectAll('.icon')
-    //       .attr('width', iconWidth)
-    //       .attr('height', iconHeight)
-    //       .data(quantiles)
-    //       .enter()
-    //       .append('g')
-    //       .attr('class', 'icon')
-    //       .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
-    //
-    // iconG.append('rect')
-    //       .attr('width', iconWidth)
-    //       .attr('height', iconHeight)
-    //       // .attr('rx', 12)
-    //       // .attr('ry', 12)
-    //       .attr('fill', d => radScale(d.end));
-    //       // .style('fill', 'url(#full-gradient)');
-
-
-    // iconG
-    //     .append('image')
-    //       .attr('width', iconWidth)
-    //       .attr('height', iconHeight)
-    //     .attr('xlink:href', protIconScale);
   }());
-
-  // subCont.append('g')
-  //   .attr('class', 'rad-axis')
-  // // .attr('transform', `translate(0,${-20})`);
-  //   .attr('transform', `translate(0,${-60})`);
 
   const gMain = subCont.append('g')
     .attr('class', 'main')
@@ -853,8 +762,6 @@ function create(svg, rawData) {
 
   gMain.append('g')
     .attr('class', 'right')
-  // .attr('clip-path', 'url(#clip)');
-  // .attr('transform', `translate(${0},${0})`);
     .attr('transform', `translate(${width / 2 + centerWidth / 2},${0})`);
 
   gCenter.append('g')
@@ -863,11 +770,11 @@ function create(svg, rawData) {
   // const defaultTimeInterval = d3.timeDay;
   const [startDate, endDate] = d3.extent(data, d => d.date);
 
+  const offset = 30;
   const yDate = d3.scaleTime()
-    .domain([d3.timeMonth.floor(startDate), d3.timeMonth.ceil(endDate)])
-    .range([0, subHeight]);
-
-  const yDate2 = yDate.copy();
+    // .domain([d3.timeMonth.floor(startDate), d3.timeMonth.offset(endDate, 1)])
+    // TODO: fix offset bug
+    .range([0, subHeight - offset]);
 
   const brushScale = d3.scaleTime()
     .domain([d3.timeMonth.floor(startDate), d3.timeMonth.ceil(endDate)])
@@ -919,88 +826,27 @@ function create(svg, rawData) {
     .extent([[0, 0], [dim.width, brushHeight]])
     .handleSize(brushHandleSize)
     .on('start brush', () => {
-      if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return;
+      // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return;
       const s = d3.event.selection || brushScale.range();
       const d0 = s.map(brushScale.invert, brushScale);
-      // const d1 = d0.map(defaultTimeInterval.round);
-      // if (d1[0] >= d1[1]) {
-      //   d1[0] = defaultTimeInterval.floor(d0[0]);
-      //   d1[1] = defaultTimeInterval.offset(d1[0]);
-      // }
-      // if (d3.event.sourceEvent) {
-      yDate.domain(d0);
+      console.log('brushDomain', d0);
+      yDate
+        .domain(d0);
+        // .domain([d3.timeMonth.floor(d0[0]), d3.timeMonth.ceil(d0[1])]);
 
-      // svg.select('.zoom').call(zoom.transform, d3.zoomIdentity
-      //   .scale(width / (s[1] - s[0]))
-      //   .translate(-s[0], 0));
 
-      update(data, dim, yDate);
+      update(data, dim, yDate, brush, brushScale);
+      d3.selectAll('*').on('mouseover', d => console.log('d', d));
       brushmoved(handle, s);
       // }
     });
 
-  function zoomed() {
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
-    const t = d3.event.transform;
-    // yDate2 = yDate.copy();
-    yDate.domain(t.rescaleX(yDate2).domain());
-    update(data, dim, yDate);
-    context.select('.brush')
-      .call(brush.move, brushScale.range().map(t.invertX, t));
-  }
-
-  const zoomHandler = d3.zoom()
-    .scaleExtent([1, Infinity])
-    .translateExtent([[0, 0], [width, height]])
-    .extent([[0, 0], [width, height]])
-    .duration(1000)
-    .on('zoom', zoomed);
-
-  function progZoom(el, x) {
-    zoomHandler.transform(svg, d3.zoomIdentity.translate(x, 0));
-  }
-
-  let factor = 0;
-  svg.append('rect')
-    .attr('class', 'zoom')
-    .attr('width', 20)
-    .attr('height', 20)
-  // .attr('fill', 'none')
-    .attr('opacity', 0.1)
-    .attr('transform', `translate(${width - 20},${height - 20})`)
-  // .call(zoomHandler);
-    .on('click', function() {
-      progZoom(d3.select(this), factor);
-      factor += 40;
-    });
-
-  svg.append('rect')
-  // .attr('class', 'zoom')
-    .attr('width', 20)
-    .attr('height', 20)
-  // .attr('fill', 'none')
-    .attr('opacity', 0.1)
-    .attr('transform', `translate(${width - 20},${height - 40})`)
-  // .call(zoomHandler);
-    .on('click', function() {
-      progZoom(d3.select(this), factor);
-      factor -= 40;
-    });
-
-  // svg.append('rect')
-  //   .attr('class', 'zoom')
-  //   .attr('width', subWidth)
-  //   .attr('height', subHeight)
-  // // .attr('fill', 'none')
-  //   .attr('opacity', 0.1)
-  //   .attr('transform', `translate(${innerMargin.left},${innerMargin.top})`)
-  //   .call(zoomHandler);
-  //
   d3.select('.brush')
     .call(brush)
     .call(brush.move, brushScale.range());
 
-  update(data, dim, yDate);
+
+  return { yDate, brush, brushScale };
 }
 
 export { create, update };
