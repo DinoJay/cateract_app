@@ -4,24 +4,55 @@ import * as d3 from 'd3';
 
 import '../global_styles/app.scss';
 
-import { create, update } from './vis';
+import Vis from './vis';
 
 const timeFormatStr = '%d/%m/%Y';
 const parseDate = d3.timeParse(timeFormatStr);
 
-function preselect(eye) {
-  return (d) => {
-    d.protection = d[eye].protection;
-    d.totalProtection = d.protection.shield
-    + d.protection.glasses + d.protection.cabin;
-    d.radiation = d[eye].radiation;
+const keys = ['shield', 'glasses', 'cabin'];
+function preprocess(d) {
+  d.initProtSel = Object.assign({}, d.protSel);
+  d.date = parseDate(d.date);
+  return d;
+}
+
+function generateProtValue(e) {
+  return {
+    shield: e.protSel.shield ? Math.random() / keys.length : 0,
+    glasses: e.protSel.glasses ? Math.random() / keys.length : 0,
+    cabin: e.protSel.cabin ? Math.random() / keys.length : 0
   };
 }
 
-function preprocess(d) {
-  d.date = parseDate(d.date);
-  preselect('leftEye')(d);
-  return d;
+function generateRadValue(e) {
+  return Math.random() * 0.5;
+}
+
+function selectData(data, leftEyeChecked, rightEyeChecked) {
+  return data.map((e) => {
+    e.radiation = generateRadValue(e, leftEyeChecked, rightEyeChecked);
+    e.protection = generateProtValue(e, leftEyeChecked, rightEyeChecked);
+    return e;
+  });
+}
+
+function callback(prot, data) {
+  console.log('callback', prot, data);
+  let newData;
+  if (prot.selected) {
+    newData = data.map((e) => {
+      e.protSel[prot.key] = false;
+      return e;
+    });
+    prot.selected = false;
+  } else {
+    newData = data.map((e) => {
+      e.protSel[prot.key] = true;
+      return e;
+    });
+    prot.selected = true;
+  }
+  return newData;
 }
 
 window.onload = function() {
@@ -60,21 +91,36 @@ window.onload = function() {
 
 
   d3.json('testData.json', (error, rawData) => {
-    const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
     if (error) throw error;
-    const { yDate, brush, brushScale } = create(d3.select('#app'), dim, data);
+    const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
+    console.log('selectData', selectData(data));
+    const selectedData = selectData(data);
 
-    d3.select('#left-eye-sel').on('click', () => {
-      data.forEach(preselect('leftEye'));
-      const checked = d3.select('#right-eye-sel').property('checked');
-      update(data, dim, yDate, brush, brushScale);
+    const VisObj = new Vis(d3.select('#app'), dim, selectedData, callback);
+
+    d3.select('#left-eye-sel').on('click', function() {
+      const rightEyeChecked = d3.select('#right-eye-sel').property('checked');
+      const leftEyeChecked = d3.select(this).property('checked');
+      if (!leftEyeChecked && !rightEyeChecked) {
+        d3.event.preventDefault();
+        return;
+      }
+      const newData = selectData(data, leftEyeChecked, rightEyeChecked);
+      VisObj.setState({ data: newData });
     });
-    d3.select('#right-eye-sel').on('click', () => {
-      const checked = d3.select('#left-eye-sel').property('checked');
-      console.log('checked', checked);
-      data.forEach(preselect('rightEye'));
+    d3.select('#right-eye-sel').on('click', function() {
+      console.log('click right eye');
+      const leftEyeChecked = d3.select('#left-eye-sel').property('checked');
+      const rightEyeChecked = d3.select(this).property('checked');
 
-      update(data, dim, yDate, brush, brushScale);
+      if (!leftEyeChecked && !rightEyeChecked) {
+        d3.event.preventDefault();
+        return;
+      }
+
+      const newData = selectData(data, leftEyeChecked, rightEyeChecked);
+
+      VisObj.setState({ newData });
     });
   });
 };

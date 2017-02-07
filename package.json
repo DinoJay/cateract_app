@@ -6,8 +6,7 @@
   "scripts": {
     "build": "webpack --config webpack.production.config.js --progress --profile --colors",
     "start": "webpack-dev-server --progress --profile --colors",
-    "lint": "eslint --ext js --ext jsx src || exit 0",
-    "test": "xo"
+    "lint": "eslint --ext js --ext jsx src || exit 0"
   },
   "repository": {
     "type": "git",
@@ -53,6 +52,7 @@
     "url-loader": "0.5.7",
     "webpack": "1.13.3",
     "webpack-cleanup-plugin": "^0.4.1",
-    "webpack-dev-server": "1.16.2"
+    "webpack-dev-server": "1.16.2",
+    "jsctags": "git://github.com/ramitos/jsctags.git"
   }
 }
