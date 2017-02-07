@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--
+      Customize this policy to fit your own app's needs. For more guidance, see:
+      https://github.com/apache/cordova-plugin-whitelist/blob/master/README.md#content-security-policy
+      Some notes:
+      * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+      * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+      * Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+      * Enable inline JS: add 'unsafe-inline' to default-src
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <title>Hello World</title>
+  <link href="d41d8cd98f00b204e9800998ecf8427e.css" rel="stylesheet"></head>
+  <body>
+    <div class="container-fluid">
+      <div class="pos-f-t">
+        <div class="collapse" id="navbarToggleExternalContent">
+          <div class="bg-faded p-4">
+            <h4>Collapsed content</h4>
+            <span class="text-muted">Toggleable via the navbar brand.</span>
+          </div>
+        </div>
+        <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+          <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <h3>EyeRad</h3>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="navbar-nav mr-auto">
+              <div class="row">
+                <label for="lgFormGroupInput" class="col-sm-2 col-form-label col-form-label-lg">
+                  Selection
+                </label >
+                <div class="col-sm-10">
+                  <div class="form-check form-check-inline">
+                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                      <span class="custom-control-description">Left Eye</span>
+                      <input type="checkbox" id="left-eye-sel" class="custom-control-input"
+                                                               checked>
+                      <span class="custom-control-indicator" ></span>
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                      <span class="custom-control-description">Right Eye</span>
+                      <input type="checkbox" id="right-eye-sel" class="custom-control-input">
+                      <span class="custom-control-indicator" ></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <label for="lgFormGroupInput" class="col-sm-2 col-form-label col-form-label-lg">
+                  View
+                </label >
+                <div class="col-sm-10">
+                  <div class="form-check form-check-inline">
+                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                      <span class="custom-control-description">Procedure</span>
+                      <input type="radio" id="right-eye-sel" name="aggr" class="custom-control-input">
+                      <span class="custom-control-indicator" ></span>
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                      <span class="custom-control-description">Sum</span>
+                      <input type="radio" id="right-eye-sel" name="aggr" class="custom-control-input">
+                      <span class="custom-control-indicator" ></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <form> -->
+        </nav>
+      </div>
+      <div id="app"></div>
+    </div>
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="js/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+    <script src="js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="554d571d4484ff176bfd.js"></script></body>
+</html>
+
