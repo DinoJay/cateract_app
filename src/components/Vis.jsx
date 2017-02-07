@@ -16,7 +16,7 @@ function preprocess(d) {
   return d;
 }
 
-function generateProtValue(e) {
+function lookUpProtection(e, config) {
   return {
     shield: e.protSel.shield ? Math.random() / keys.length : 0,
     glasses: e.protSel.glasses ? Math.random() / keys.length : 0,
@@ -24,36 +24,41 @@ function generateProtValue(e) {
   };
 }
 
-function generateRadValue(e) {
+function lookupRadiation(e, config) {
   return Math.random() * 0.5;
 }
 
-function selectData(data, leftEyeChecked, rightEyeChecked) {
-  return data.map((e) => {
-    e.radiation = generateRadValue(e, leftEyeChecked, rightEyeChecked);
-    e.protection = generateProtValue(e, leftEyeChecked, rightEyeChecked);
+function selectData(config) {
+  return (e) => {
+    e.radiation = lookupRadiation(e, config);
+    e.protection = lookUpProtection(e, config);
     return e;
-  });
+  };
+}
+
+function getDataConfig() {
+  return {
+    leftEye: d3.select('#left-eye-sel').property('checked'),
+    rightEye: d3.select('#right-eye-sel').property('checked')
+  };
 }
 
 function callback(prot, data) {
   console.log('callback', prot, data);
-  let newData;
-  if (prot.selected) {
-    newData = data.map((e) => {
-      e.protSel[prot.key] = false;
-      return e;
-    });
-    prot.selected = false;
-  } else {
-    newData = data.map((e) => {
-      e.protSel[prot.key] = true;
-      return e;
-    });
-    prot.selected = true;
-  }
+  // const rightEyeChecked = d3.select('#right-eye-sel').property('checked');
+  // const leftEyeChecked = d3.select(this).property('checked');
+  const config = getDataConfig(prot);
+
+  const newData = data.map((e) => {
+    e.protSel[prot.key] = !prot.selected;
+    return e;
+  }).map(selectData(config));
+
+  prot.selected = !prot.selected;
+
   return newData;
 }
+
 
 window.onload = function() {
   const brushHandleSize = 40;
@@ -89,42 +94,27 @@ window.onload = function() {
     outerMargin
   };
 
-
   d3.json('testData.json', (error, rawData) => {
     if (error) throw error;
+
     const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
-    console.log('selectData', selectData(data));
-    const selectedData = selectData(data);
+
+    const selectedData = data.map(selectData(getDataConfig()));
+    console.log('selectedData', selectedData);
 
     const VisObj = new Vis(d3.select('#app'), dim, selectedData, callback);
 
-    d3.select('#left-eye-sel').on('click', function() {
-      const rightEyeChecked = d3.select('#right-eye-sel').property('checked');
-      const leftEyeChecked = d3.select(this).property('checked');
-      if (!leftEyeChecked && !rightEyeChecked) {
+    function clickHandler() {
+      const config = getDataConfig();
+      if (!config.leftEye && !config.rightEye) {
         d3.event.preventDefault();
         return;
       }
-      const newData = selectData(data, leftEyeChecked, rightEyeChecked);
+      const newData = data.map(selectData(config));
       VisObj.setState({ data: newData });
-    });
-    d3.select('#right-eye-sel').on('click', function() {
-      console.log('click right eye');
-      const leftEyeChecked = d3.select('#left-eye-sel').property('checked');
-      const rightEyeChecked = d3.select(this).property('checked');
+    }
 
-      if (!leftEyeChecked && !rightEyeChecked) {
-        d3.event.preventDefault();
-        return;
-      }
-
-      const newData = selectData(data, leftEyeChecked, rightEyeChecked);
-
-      VisObj.setState({ newData });
-    });
+    d3.select('#left-eye-sel').on('click', clickHandler);
+    d3.select('#right-eye-sel').on('click', clickHandler);
   });
 };
-  // }
-
-// export default Comp;
-//
