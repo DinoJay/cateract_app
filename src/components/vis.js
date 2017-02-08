@@ -15,7 +15,7 @@ import shieldSrc from './shield.png';
 // const formatDate = d3.timeFormat(timeFormatStr);
 
 const keys = ['shield', 'glasses', 'cabin'];
-const formatTime = d3.timeFormat('%Y/%m/%d %H:%M:%S %Z');
+const formatTime = d3.timeFormat('%Y/%m/%d %H:%M ');
 
 const delay = 700;
 
@@ -136,12 +136,12 @@ function nextInterval(intervalKey) {
 function d3TimeSwitch(data, startDate, endDate) {
   const limit = 10;
   switch (true) {
-  case (d3.timeHour.count(startDate, endDate) < limit):
+  case (d3.timeDay.count(startDate, endDate) <= 1):
     return {
       intervalKey: 'hours',
       tickInterval: d3.timeHour,
       nestInterval: d3.timeHour,
-      timeFormat: d3.timeFormat('%I %p')
+      timeFormat: d3.timeFormat('%H %M')
     };
   case (d3.timeDay.count(startDate, endDate) <= 15):
     return {
@@ -618,7 +618,8 @@ function create(el, dim, data) {
           .attr('width', iconWidth)
           .attr('height', legendHeight)
           .data(keys.map(k => ({ key: k, selected: true })))
-          .enter()
+          .enter(
+          )
           .append('g')
           .attr('class', 'prot-icon')
           .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
@@ -649,7 +650,7 @@ function create(el, dim, data) {
 
     const iconWidth = (width / 2 - centerWidth / 2) / radLegendData.length;
 
-    const stepNum = 4;
+    const stepNum = 3;
     // const iconWidth = (width / 2 - centerWidth / 2) / stepNum;
     // const maxRad = d3.extent(data, d => d.radiation)[1];
 

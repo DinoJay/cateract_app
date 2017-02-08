@@ -60,7 +60,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       template: './cordova/template.html',
-      title: 'Webpack App'
+      title: 'EyeRad'
     }),
     new webpack.optimize.DedupePlugin()
   ]

@@ -1,5 +1,3 @@
-
-
 const webpack = require('webpack');
 const path = require('path');
 const loaders = require('./webpack.loaders');
@@ -62,7 +60,7 @@ module.exports = {
   ],
   devtool: process.env.WEBPACK_DEVTOOL || 'cheap-module-source-map',
   output: {
-    path: path.join(__dirname, 'public'),
+    path: path.join(__dirname, 'cordova/www'),
     filename: 'bundle.js'
   },
   esolve: {
@@ -72,7 +70,7 @@ module.exports = {
     loaders
   },
   devServer: {
-    contentBase: './public',
+    contentBase: './cordova/www',
     // do not print bundle build stats
     noInfo: true,
     // enable HMR
@@ -88,7 +86,7 @@ module.exports = {
     new webpack.NoErrorsPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
-      template: './src/template.html'
+      template: './cordova/template.html'
     })
   ]
 };

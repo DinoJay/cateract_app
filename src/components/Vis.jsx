@@ -4,28 +4,53 @@ import * as d3 from 'd3';
 
 import '../global_styles/app.scss';
 
+import rawRefData from './refData.json';
 import Vis from './vis';
 
-const timeFormatStr = '%d/%m/%Y';
+const timeFormatStr = '%d/%m/%Y %H:%M';
 const parseDate = d3.timeParse(timeFormatStr);
 
-const keys = ['shield', 'glasses', 'cabin'];
+const refData = rawRefData.map((d) => {
+  d.shield = d.shield === 'Yes';
+  d.glasses = d.glasses === 'Yes';
+  d.cabin = d.cabin === 'Yes';
+  return d;
+});
+
+
+function getEntry(d, e, eye) {
+  return (
+    d.eye === eye && d.equipment === e.equipment &&
+    d.procedure === e.procedure && d.shield === e.protSel.shield &&
+    d.glasses === e.protSel.glasses && d.cabin === e.protSel.cabin
+  );
+}
+
+// const keys = ['shield', 'glasses', 'cabin'];
 function preprocess(d) {
   d.initProtSel = Object.assign({}, d.protSel);
   d.date = parseDate(d.date);
+  if (d.date === null) console.log('date null', d);
   return d;
 }
 
-function lookUpProtection(e, config) {
+function lookUpProtection(e) {
+  // TODO: EYE select
+  const refEntry = refData
+    .find(d => getEntry(d, e, 'left'));
+
   return {
-    shield: e.protSel.shield ? Math.random() / keys.length : 0,
-    glasses: e.protSel.glasses ? Math.random() / keys.length : 0,
-    cabin: e.protSel.cabin ? Math.random() / keys.length : 0
+    shield: refEntry.shieldLevel,
+    glasses: refEntry.glassesLevel,
+    cabin: refEntry.cabinLevel
   };
 }
 
 function lookupRadiation(e, config) {
-  return Math.random() * 0.5;
+  const refEntry = refData.find(d => getEntry(d, e, 'left'));
+
+  if (!refEntry) console.log('not found', e);
+  return refEntry.radiation;
 }
 
 function selectData(config) {
@@ -36,25 +61,25 @@ function selectData(config) {
   };
 }
 
-function getDataConfig() {
+function getUIConfig() {
+  const leftChecked = d3.select('#left-eye-sel').property('checked');
+  // var rightChecked = d3.select('#right-eye-sel').property('checked');
+
   return {
-    leftEye: d3.select('#left-eye-sel').property('checked'),
-    rightEye: d3.select('#right-eye-sel').property('checked')
+    eye: leftChecked ? 'left' : 'right',
+    sum: false
   };
 }
 
-function callback(prot, data) {
-  console.log('callback', prot, data);
-  // const rightEyeChecked = d3.select('#right-eye-sel').property('checked');
-  // const leftEyeChecked = d3.select(this).property('checked');
-  const config = getDataConfig(prot);
-
+function protClickHandler(prot, data) {
   const newData = data.map((e) => {
-    e.protSel[prot.key] = !prot.selected;
+    if (prot.selected) e.protSel[prot.key] = false;
+    else e.protSel[prot.key] = e.initProtSel[prot.key];
     return e;
-  }).map(selectData(config));
+  }).map(selectData(getUIConfig()));
 
   prot.selected = !prot.selected;
+  d3.selectAll('.prot-icon').attr('opacity', d => d.selected ? 1 : 0.4);
 
   return newData;
 }
@@ -99,13 +124,13 @@ window.onload = function() {
 
     const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
 
-    const selectedData = data.map(selectData(getDataConfig()));
+    const selectedData = data.map(selectData(getUIConfig()));
     console.log('selectedData', selectedData);
 
-    const VisObj = new Vis(d3.select('#app'), dim, selectedData, callback);
+    const VisObj = new Vis(d3.select('#app'), dim, selectedData, protClickHandler);
 
     function clickHandler() {
-      const config = getDataConfig();
+      const config = getUIConfig();
       if (!config.leftEye && !config.rightEye) {
         d3.event.preventDefault();
         return;
