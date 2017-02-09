@@ -2,10 +2,10 @@
 import * as d3 from 'd3';
 // import style from './styles/Comp.scss';
 
-import '../global_styles/app.scss';
+import './global_styles/app.scss';
 
 import rawRefData from './refData.json';
-import Vis from './vis';
+import Vis from './components/vis';
 
 const timeFormatStr = '%d/%m/%Y %H:%M';
 const parseDate = d3.timeParse(timeFormatStr);
