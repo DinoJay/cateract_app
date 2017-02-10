@@ -17,7 +17,9 @@ const refData = rawRefData.map((d) => {
   return d;
 });
 
-const maxRad = d3.mean(refData, d => d.radiation);
+const maxRad = 0.02; // d3.max(refData, d => d.radiation);
+const threshhold = maxRad;
+
 console.log('median', maxRad);
 
 function getEntry(d, e, eye) {
@@ -40,8 +42,6 @@ function lookUpProtection(e) {
   const refEntry = refData
     .find(d => getEntry(d, e, 'left'));
 
-  if (refEntry.cabinLevel > 0) console.log('refEntry', refEntry);
-
   return {
     shield: refEntry.shieldLevel,
     glasses: refEntry.glassesLevel,
@@ -56,29 +56,62 @@ function lookupRadiation(e, config) {
   return refEntry.radiation;
 }
 
-function selectData(config) {
-  return (e) => {
-    e.radiation = lookupRadiation(e, config);
+function filterData(data, config) {
+  if (!config.aggrSel) {
+    return data.map((e) => {
+      e.radiation = lookupRadiation(e, config);
+      e.protection = lookUpProtection(e, config);
+      return e;
+    });
+  }
+  const redData = data.reduce(({ acc, sum }, e) => {
+    const newSum = sum + lookupRadiation(e, config);
+    e.radiation = newSum;
     e.protection = lookUpProtection(e, config);
-    return e;
-  };
+    return { sum: newSum, acc: acc.concat([e]) };
+  }, { acc: [], sum: 0 });
+  console.log('redData', redData);
+  return redData.acc;
+  // if (config.aggrSel) {
+  //   return ;
+  // }
+  // return (e) => {
+  //   e.radiation = lookupRadiation(e, config);
+  //   e.protection = lookUpProtection(e, config);
+  //   return e;
+  // };
 }
 
 function getUIConfig() {
   const leftChecked = d3.select('#left-eye-sel').property('checked');
-  // var rightChecked = d3.select('#right-eye-sel').property('checked');
+  const rightChecked = d3.select('#right-eye-sel').property('checked');
+
+  const aggrSel = d3.select('#aggr-sel').property('checked');
+
+  let eye;
+  if (leftChecked && rightChecked) {
+    eye = 'both';
+  }
+  if (leftChecked) {
+    eye = 'left';
+  }
+  if (rightChecked) {
+    eye = 'both';
+  }
 
   return {
-    eye: leftChecked ? 'left' : 'right',
-    sum: false
+    eye,
+    aggrSel
   };
 }
 
 function protClickCallback(prot, data) {
-  const newData = data.map((e) => {
+  const changedData = data.map((e) => {
     e.protSel[prot.key] = prot.selected ? false : e.initProtSel[prot.key];
     return e;
-  }).map(selectData(getUIConfig()));
+  });
+
+  const newData = filterData(changedData, getUIConfig());
 
   prot.selected = !prot.selected;
 
@@ -127,7 +160,7 @@ window.onload = function() {
 
     const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
 
-    const selectedData = data.map(selectData(getUIConfig()));
+    const selectedData = filterData(data, getUIConfig());
     console.log('selectedData', selectedData);
 
     const VisObj = new Vis({
@@ -135,20 +168,23 @@ window.onload = function() {
       dim,
       data: selectedData,
       callback: protClickCallback,
-      maxRad
+      threshhold
     });
 
     function clickHandler() {
       const config = getUIConfig();
-      if (!config.leftEye && !config.rightEye) {
-        d3.event.preventDefault();
-        return;
-      }
-      const newData = data.map(selectData(config));
-      VisObj.setState({ data: newData });
+      console.log('clickHandler', filterData(data, config));
+      // if (!config.leftEye && !config.rightEye) {
+      //   d3.event.preventDefault();
+      //   return;
+      // }
+      VisObj.setState({ data: filterData(data, config), threshhold: 0.1 });
     }
 
     d3.select('#left-eye-sel').on('click', clickHandler);
     d3.select('#right-eye-sel').on('click', clickHandler);
+
+    d3.select('#procedure-sel').on('click', clickHandler);
+    d3.select('#aggr-sel').on('click', clickHandler);
   });
 };
