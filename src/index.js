@@ -17,11 +17,6 @@ const refData = rawRefData.map((d) => {
   return d;
 });
 
-const maxRad = 0.02; // d3.max(refData, d => d.radiation);
-const threshhold = maxRad;
-
-console.log('median', maxRad);
-
 function getEntry(d, e, eye) {
   return (
     d.eye === eye && d.equipment === e.equipment &&
@@ -42,18 +37,20 @@ function lookUpProtection(e) {
   const refEntry = refData
     .find(d => getEntry(d, e, 'left'));
 
-  return {
+  return refEntry ? {
     shield: refEntry.shieldLevel,
     glasses: refEntry.glassesLevel,
     cabin: refEntry.cabinLevel
-  };
+  } : {
+    shield: 0,
+    glasses: 0,
+    cabin: 0
+  }
 }
 
 function lookupRadiation(e, config) {
   const refEntry = refData.find(d => getEntry(d, e, 'left'));
-
-  if (!refEntry) console.log('not found', e);
-  return refEntry.radiation;
+  return refEntry ? refEntry.radiation: 0;
 }
 
 function filterData(data, config) {
@@ -107,13 +104,20 @@ function getUIConfig() {
 
 function protClickCallback(prot, data) {
   const changedData = data.map((e) => {
-    e.protSel[prot.key] = prot.selected ? false : e.initProtSel[prot.key];
+    switch (prot.selected) {
+    case 0:
+      e.protSel[prot.key] = e.initProtSel[prot.key];
+      break;
+    case 1:
+      e.protSel[prot.key] = true;
+      break;
+    default: e.protSel[prot.key] = false;
+    }
     return e;
   });
 
+  console.log('changedData', changedData);
   const newData = filterData(changedData, getUIConfig());
-
-  prot.selected = !prot.selected;
 
   d3.selectAll('.prot-icon').attr('opacity', d => (d.selected ? 1 : 0.4));
 
@@ -160,25 +164,31 @@ window.onload = function() {
 
     const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
 
-    const selectedData = filterData(data, getUIConfig());
-    console.log('selectedData', selectedData);
+    const filtered = filterData(data, getUIConfig());
+    console.log('filtered Data', filtered);
+    const maxRad = d3.max(filtered, d => d.radiation);
+    console.log('maxRad', maxRad);
 
     const VisObj = new Vis({
       el: d3.select('#app'),
       dim,
-      data: selectedData,
+      data: filtered,
       callback: protClickCallback,
-      threshhold
+      threshhold: maxRad
     });
 
     function clickHandler() {
       const config = getUIConfig();
       console.log('clickHandler', filterData(data, config));
+      const filteredData = filterData(data, config);
       // if (!config.leftEye && !config.rightEye) {
       //   d3.event.preventDefault();
       //   return;
       // }
-      VisObj.setState({ data: filterData(data, config), threshhold: 0.1 });
+      VisObj.setState({
+        data: filteredData,
+        threshhold: d3.max(filteredData, d => d.radiation)
+      });
     }
 
     d3.select('#left-eye-sel').on('click', clickHandler);

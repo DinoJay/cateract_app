@@ -71,7 +71,6 @@ function wordwrap(line, maxCharactersPerLine) {
   return lines;
 }
 
-
 function aggregate(data, timeInterval) {
   return d3.nest()
     .key(d => formatTime(timeInterval(d.date)))
@@ -79,7 +78,7 @@ function aggregate(data, timeInterval) {
     .map((e) => {
       e.date = new Date(e.key);
       // e.totalProtection = d3.sum(e.values, a => a#<{(| .t |)}>#otalProtection) / e.values.length;
-      e.sumRadiation = d3.sum(e.values, a => a.radiation) / e.values.length;
+      e.sumRadiation = d3.sum(e.values, a => a.radiation);
       return e;
     });
 }
@@ -201,6 +200,8 @@ function update() {
           .rangeRound([(self.dim.width / 2) - (self.dim.centerWidth / 2), 0])
           .domain([0, self.threshhold + step]);
 
+  console.log('radBarWidth', radBarWidth.domain());
+
   (function updateRadLegend() {
     const range = d3.range(step, self.threshhold + 2 * step, step);
     console.log('threshhold', self.threshhold, 'range', range);
@@ -211,7 +212,8 @@ function update() {
 
     const iconWidth = (self.dim.width / 2 - self.dim.centerWidth / 2) / (stepNum + 1);
     const g = d3.select('.legend-items').selectAll('.legend-item')
-        .data(quantiles.slice(0, 3).reverse(), d => Math.random());
+          // TODO: remove slice
+        .data(quantiles.reverse());
 
     const gEnter = g.enter()
         .append('g')
@@ -234,7 +236,7 @@ function update() {
         .style('text-anchor', 'middle')
         .attr('alignment-baseline', 'middle')
         .attr('font-size', 13)
-        .text(d => `> ${Math.round(d.end * 100) / 100}`)
+        .text(d => `> ${Math.round(d.end * 10000) / 10000}`)
         .attr('transform', () => `translate(${iconWidth / 2},
       ${self.dim.legendHeight / 2})`);
 
@@ -253,23 +255,25 @@ function update() {
   const barPadding = paddingScale(intervalKey);
 
   (function protBars() {
-    const barWidth = d3.scaleLinear()
-      .domain([0, 1])
-      .range([0, self.dim.width / 2]);
-
-
     const stacked = d3.stack()
-      .keys(keys)
-      .value((a, key) => d3.sum(a.values, e => e.protection[key] / a.values.length))(nestedData);
+      .keys(self.keys)
+      .value((a, key) => d3.mean(a.values, e => e.protection[key]))(nestedData);
 
     stacked.forEach((layer) => {
       layer.forEach((d) => {
+        const w = radBarWidth(0) - radBarWidth(d.data.sumRadiation);
+        const barWidth = d3.scaleLinear()
+          .domain([0, 1])
+          .range([0, 308 - w]);
+          // .clamp(true);
+
         d.y = self.yDate(d.data.date);
         d.x = barWidth(d[0]);
         d.width = barWidth(d[1]) - barWidth(d[0]);
         d.height = barHeight - barPadding;
       });
     });
+
 
     const links = stacked.map(layer => layer.slice(2).reduce((acc, cur) => {
       const last = acc[acc.length - 1].target;
@@ -314,7 +318,6 @@ function update() {
 
     protLayer.exit().remove();
 
-
     const protLayerEnter = protLayer
       .enter()
       .append('g')
@@ -336,7 +339,8 @@ function update() {
       .attr('class', 'prot-seg')
       .style('fill', function() {
         return protColor(d3.select(this.parentNode).datum().key);
-      });
+      })
+      .on('click', d => console.log('click', d));
 
     protSeg.merge(protSegEnter)
       .attr('x', function() { return d3.select(this).attr('x'); })
@@ -468,7 +472,8 @@ function update() {
     // .data(d => d.radiation)
     // .enter()
       .append('rect')
-      .attr('class', 'rad-bar');
+      .attr('class', 'rad-bar')
+      .on('click', d => console.log('click', d));
     // .style('opacity', d => ((d.key === 'right eye') ? 0.2 : 1))
     // .style('stroke', 'black')
     // .on('click', () => update(data, dim));
@@ -503,7 +508,7 @@ function update() {
         .data(radLinks);
 
     const radLinkLineEnter = radLinkLine.enter()
-        .append('path')
+        .insert('path', 'rad-bar')
         .attr('class', 'rad-link')
         .style('fill', 'url(#full-gradient)')
         .attr('opacity', 0.3);
@@ -614,46 +619,119 @@ function create() {
 
   (function createProtLegend() {
     const iconWidth = (width / 2 - centerWidth / 2) / keys.length;
-    const protLegend = cont.append('g')
-    .attr('class', 'protection-legend')
-    .attr('transform', `translate(${width / 2 + centerWidth / 2},${brushHeight + brushMargin})`);
+    const r = 8;
+    const protData = keys.map(k => ({ key: k, selected: 0, clicked: false}))
 
-    protLegend.append('text')
+    const protLegend = svg.append('g')
+    .attr('class', 'prot-legend')
+    .attr('transform', `translate(${width / 2 + centerWidth / 2},${brushHeight + brushMargin + outerMargin.top})`);
+
+    protLegend.append('g')
+      .attr('class', 'header')
+      .selectAll('text')
+      .data(protData)
+      .enter('g')
+      .append('g')
+      .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`)
+      .append('text')
+      .text(d => d.key)
       .attr('dy', -10)
-      .attr('dx', width / 2 - centerWidth / 2)
-    .attr('text-anchor', 'end')
       .attr('fill', '#000')
       .attr('font-size', 15)
-      .attr('font-weight', 'bold')
-      .text('Protection');
+      .attr('font-weight', 'bold');
+
 
     const protIcon = protLegend.selectAll('.prot-icon')
           .attr('width', iconWidth)
           .attr('height', legendHeight)
-          .data(keys.map(k => ({ key: k, selected: true })))
-          .enter(
-          )
+          .data(protData)
+          .enter()
           .append('g')
           .attr('class', 'prot-icon')
-          .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`);
+          // .style('width', `${iconWidth}px`)
+          .style('transform', (d, i) => `translate(${i * iconWidth}px,${0}px)`)
+          .on('click', function (d) {
+            d.selected = (d.selected + 1) % 3;
+
+            d3.select(this).select('.inner-rect')
+              .attr('fill', b => protColor(b.key))
+              .attr('opacity', (b) => {
+                switch (b.selected) {
+                case 0: return 0.4;
+                case 1: return 1;
+                default: return 0;
+                }
+              });
+
+            d3.select(this).select('.sel-circle')
+              .attr('transform', function() {
+                return d3.select(this).attr('transform');
+              })
+              .transition()
+              .duration(delay / 2)
+              .attr('transform', (b) => {
+                switch (b.selected) {
+                case 0: return `translate(${2 * r}, ${legendHeight / 2})`;
+                case 1: return `translate(${iconWidth / 2}, ${legendHeight / 2})`;
+                default: return `translate(${iconWidth - 2 * r}, ${legendHeight / 2})`;
+                }
+              });
+
+            const newData = self.callback(d, data);
+            const maxRad = d3.max(newData, d => d.radiation);
+            self.setState({ data: newData, threshhold: maxRad});
+          });
+          // .text(d => d.key);
 
     protIcon.append('rect')
           .attr('width', iconWidth)
           .attr('height', legendHeight)
+          .attr('stroke', 'black')
+          .attr('class', 'outer-rect')
           // .attr('rx', 4)
           // .attr('ry', 4)
-          .attr('fill', d => protColor(d.key));
+          .attr('fill', 'none');
 
-
-    protIcon
-        .append('image')
+    protIcon.append('rect')
           .attr('width', iconWidth)
           .attr('height', legendHeight)
-        .attr('xlink:href', d => protIconScale(d.key))
-          .on('click', (d) => {
-            const newData = self.callback(d, data);
-            self.setState({ data: newData });
-          });
+          .attr('class', 'inner-rect')
+          // .attr('rx', 4)
+          // .attr('ry', 4)
+          .attr('fill', b => protColor(b.key))
+          .attr('opacity', 0.4);
+
+    protIcon.selectAll('.placeholder')
+      .data([2 * r, iconWidth / 2, iconWidth - 2 * r])
+      .enter()
+      .append('circle')
+      .attr('r', r)
+      .attr('opacity', 0.3)
+      .attr('transform', d => `translate(${d}, ${legendHeight / 2})`)
+      .attr('fill', 'grey');
+
+    protIcon.append('circle')
+      .attr('class', 'sel-circle')
+      .attr('r', r)
+      .attr('transform', `translate(${2 * r}, ${legendHeight / 2})`)
+      .attr('stroke', 'black')
+      .attr('fill', 'white');
+    // protIcon.append('text')
+    //   .text(d => d.selected ? 'on' : 'default')
+    //   // .style('text-anchor', 'middle')
+    //   // .attr('fill', 'white')
+    //   .attr('alignment-baseline', 'middle')
+    //   .attr('transform', `translate(${4 * r}, ${legendHeight / 2})`);
+
+    // protIcon
+    //     .append('image')
+    //       .attr('width', iconWidth)
+    //       .attr('height', legendHeight)
+    //     .attr('xlink:href', d => protIconScale(d.key))
+    //       .on('click', (d) => {
+    //         const newData = self.callback(d, data);
+    //         self.setState({ data: newData });
+    //       });
   }());
 
   (function createRadLegend() {
@@ -783,6 +861,7 @@ class Vis {
   constructor(initState) {
     // TODO: move out instance vars
     Object.keys(initState).forEach(k => (this[k] = initState[k]));
+    this.keys = keys;
     create.bind(this)();
   }
 
