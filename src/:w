@@ -199,8 +199,8 @@ function update() {
 
 
   const nestedData = aggregate(self.data, nestInterval);
-  const newMaxRad = d3.max(nestedData, d => d.sumRadiation);
-  self.maxRad = newMaxRad > 0 ? newMaxRad : self.maxRad;
+  console.log('nestedData', nestedData);
+  const maxRad = d3.max(nestedData, d => d.sumRadiation);
 
   // const [startDate, endDate] = yDate.domain();
   // const barHeight = self.yDate(startDate) - self.yDate(nestInterval.offset(startDate, -1));
@@ -209,50 +209,35 @@ function update() {
 
   const radBarWidth = d3.scaleLinear()
           .rangeRound([(self.dim.width / 2) - (self.dim.centerWidth / 2), 0])
-          .domain([0, self.maxRad]);
+          .domain([0, maxRad]);
 
 
-  const thresholdLine = d3.select('.rad-legend').selectAll('#thresholdLine')
-    .data([self.threshhold]);
-
-  const threshholdLineEnter = thresholdLine.enter()
-    .append('line')
-        .attr('id', 'thresholdLine')
+  d3.select('.rad-legend').append('line')
+        .attr('x1', radBarWidth(self.threshhold))
+        .attr('y1', self.dim.legendHeight)
+        .attr('x2', radBarWidth(self.threshhold))
+        .attr('y2', self.dim.height)
         .style('stroke', 'black')
         .style('stroke-dasharray', 2.5);
 
-
-  thresholdLine.merge(threshholdLineEnter)
-        .transition()
-        .duration(delay)
-        .attr('x1', radBarWidth)
-        .attr('y1', self.dim.legendHeight)
-        .attr('x2', radBarWidth)
-        .attr('y2', self.dim.height);
-
   (function updateRadLegend() {
-    const stepNum = 4;
-    const tickVals = d3.ticks(0, self.maxRad, stepNum).slice(1);
-    const w = radBarWidth(tickVals[1]) - radBarWidth(tickVals[0]);
-    const radAxis = d3.axisTop(radBarWidth.copy().domain([0, self.maxRad]))
-                      .tickValues(tickVals)
-                      .tickSize(self.dim.legendHeight)
-                      .tickPadding(0);
+    const stepNum = 5;
+    const tickVals = d3.range(0, maxRad, maxRad / stepNum);
+    const radAxis = d3.axisTop(radBarWidth)
+                      .tickValues(tickVals.length > 0 ? tickVals : [0])
+                      .tickSize(self.dim.legendHeight / 2);
+                      // .tickSizeOuter(0)
+                      // .tickPadding(-self.dim.legendHeight / 2);
 
     d3.select('.rad-axis')
       .transition()
       .duration(delay)
-      .call(radAxis);
-
-
-    d3.select('.rad-axis').selectAll('.tick text')
+      .call(radAxis)
+      .selectAll('.tick text')
       .attr('font-size', 12)
-      .style('text-anchor', 'middle')
-      .attr('alignment-baseline', 'middle')
-      .attr('dy', self.dim.legendHeight / 2)
-      .attr('dx', -w / 2);
-
-    // d3.select('.rad-axis')
+      // .style('text-anchor', 'end')
+      .attr('alignment-baseline', 'middle');
+      // .attr('dx', () => 30);
 
     // d3.select('.rad-axis').remove('.domain');
 
@@ -850,7 +835,6 @@ class Vis {
     // TODO: move out instance vars
     Object.keys(initState).forEach(k => (this[k] = initState[k]));
     this.keys = keys;
-    this.maxRad = 0;
     create.bind(this)();
   }
 
