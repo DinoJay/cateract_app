@@ -1,5 +1,7 @@
 // import * as d3 from 'd3';
 import * as d3 from 'd3';
+
+import { d3TimeSwitch, aggregate } from './components/utils';
 // import style from './styles/Comp.scss';
 
 import './global_styles/app.scss';
@@ -103,23 +105,16 @@ function getUIConfig() {
 }
 
 function protClickCallback(prot, data) {
+  console.log('prot selected', prot.selected);
   const changedData = data.map((e) => {
-    switch (prot.selected) {
-    case 0:
-      e.protSel[prot.key] = e.initProtSel[prot.key];
-      break;
-    case 1:
-      e.protSel[prot.key] = true;
-      break;
-    default: e.protSel[prot.key] = false;
-    }
+    e.protSel[prot.key] = d3.scaleOrdinal()
+       .domain([0, 0.5, 1])
+       .range([false, e.initProtSel[prot.key], true])(prot.selected);
     return e;
   });
 
   console.log('changedData', changedData);
   const newData = filterData(changedData, getUIConfig());
-
-  d3.selectAll('.prot-icon').attr('opacity', d => (d.selected ? 1 : 0.4));
 
   return newData;
 }
@@ -166,15 +161,13 @@ window.onload = function() {
 
     const filtered = filterData(data, getUIConfig());
     console.log('filtered Data', filtered);
-    const maxRad = d3.max(filtered, d => d.radiation);
-    console.log('maxRad', maxRad);
 
     const VisObj = new Vis({
       el: d3.select('#app'),
       dim,
       data: filtered,
       callback: protClickCallback,
-      threshhold: maxRad
+      threshhold: 0.01
     });
 
     function clickHandler() {
@@ -186,8 +179,7 @@ window.onload = function() {
       //   return;
       // }
       VisObj.setState({
-        data: filteredData,
-        threshhold: d3.max(filteredData, d => d.radiation)
+        data: filteredData
       });
     }
 
