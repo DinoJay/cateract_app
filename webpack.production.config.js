@@ -25,16 +25,25 @@ loaders.push({
   loader: ExtractTextPlugin.extract('style', 'css')
 });
 
+loaders.push({
+  test: /cordova(\.js)?$/,
+  loader: 'script-loader'
+});
+
+
 module.exports = {
   entry: [
-    './src/components/Vis.jsx' // your app's entry point
+    './src/index.js' // your app's entry point
   ],
   output: {
     path: path.join(__dirname, 'cordova/www'),
     filename: '[chunkhash].js'
   },
   resolve: {
-    extensions: ['', '.js', '.jsx']
+    extensions: ['', '.js', '.jsx'],
+    alias: {
+      cordova: path.join(__dirname, 'cordova/platforms/android/platform_www/cordova.js')
+    }
   },
   module: {
     loaders

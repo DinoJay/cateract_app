@@ -1,7 +1,9 @@
 // import * as d3 from 'd3';
 import * as d3 from 'd3';
+import 'cordova';
 
-import { d3TimeSwitch, aggregate } from './components/utils';
+import { d3TimeSwitch } from './components/utils';
+console.log('cordova', window.cordova);
 // import style from './styles/Comp.scss';
 
 import './global_styles/app.scss';
@@ -47,21 +49,22 @@ function lookUpProtection(e) {
     shield: 0,
     glasses: 0,
     cabin: 0
-  }
+  };
 }
 
 function lookupRadiation(e, config) {
   const refEntry = refData.find(d => getEntry(d, e, 'left'));
-  return refEntry ? refEntry.radiation: 0;
+  return refEntry ? refEntry.radiation : 0;
 }
 
 function filterData(data, config) {
   if (!config.aggrSel) {
-    return data.map((e) => {
+    const ret = data.map((e) => {
       e.radiation = lookupRadiation(e, config);
       e.protection = lookUpProtection(e, config);
       return e;
     });
+    return ret;
   }
   const redData = data.reduce(({ acc, sum }, e) => {
     const newSum = sum + lookupRadiation(e, config);
@@ -115,12 +118,11 @@ function protClickCallback(prot, data) {
 
   console.log('changedData', changedData);
   const newData = filterData(changedData, getUIConfig());
-
   return newData;
 }
 
 
-window.onload = function() {
+function application() {
   const brushHandleSize = 40;
   const brushHeight = 50;
   const brushMargin = 65;
@@ -156,7 +158,6 @@ window.onload = function() {
 
   d3.json('testData.json', (error, rawData) => {
     if (error) throw error;
-
     const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
 
     const filtered = filterData(data, getUIConfig());
@@ -167,7 +168,7 @@ window.onload = function() {
       dim,
       data: filtered,
       callback: protClickCallback,
-      threshhold: 0.01
+      threshhold: 0.02
     });
 
     function clickHandler() {
@@ -189,4 +190,28 @@ window.onload = function() {
     d3.select('#procedure-sel').on('click', clickHandler);
     d3.select('#aggr-sel').on('click', clickHandler);
   });
+}
+
+// window.onload = application;
+
+const app = {
+    // Application Constructor
+  initialize() {
+    document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+  },
+
+    // deviceready Event Handler
+    //
+    // Bind any cordova events here. Common events are:
+    // 'pause', 'resume', etc.
+  onDeviceReady() {
+    // this.receivedEvent('deviceready');
+    application();
+  },
+
+    // Update DOM on a Received Event
+  receivedEvent() {
+  }
 };
+
+app.initialize();

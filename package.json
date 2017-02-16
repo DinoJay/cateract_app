@@ -49,11 +49,13 @@
     "postcss-loader": "^1.1.1",
     "react-hot-loader": "^3.0.0-beta.6",
     "sass-loader": "^4.0.2",
+    "script-loader": "^0.7.0",
     "style-loader": "0.13.1",
     "tern": "^0.20.0",
     "url-loader": "0.5.7",
     "webpack": "1.13.3",
     "webpack-cleanup-plugin": "^0.4.1",
+    "webpack-cordova-plugin": "github:markmarijnissen/webpack-cordova-plugin",
     "webpack-dev-server": "1.16.2"
   }
 }

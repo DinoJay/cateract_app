@@ -1,6 +1,7 @@
 [
   {
-    "date": "20/04/2012",
+    "eye": "left",
+    "date": "20/04/2012 10:00",
     "equipment": "BiPlane",
     "protSel": {
       "cabin": false,
@@ -11,127 +12,74 @@
     "procedure": "CA"
   },
   {
-    "date": "21/04/2012",
+    "eye": "left",
+    "date": "21/04/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": false
     },
-    "procedure": "CA+PCI"
+    "procedure": "CA + PCI (PTCA)"
   },
   {
-    "date": "22/04/2012",
-    "equipment": "NotRot",
+    "eye": "left",
+    "date": "22/04/2012 10:00",
+    "equipment": "BiPlane",
     "protSel": {
-      "cabin": false,
-      "glasses": true,
-      "shield": true
+      "shield": false,
+      "glasses": false,
+      "cabin": true
     },
     "procedure": "PVI"
   },
   {
-    "date": "23/04/2012",
+    "eye": "left",
+    "date": "23/04/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": true,
       "glasses": false,
       "shield": false
     },
-    "procedure": "PM-Implantation"
+    "procedure": "PM implantation"
   },
   {
-    "date": "23/06/2012",
+    "eye": "left",
+    "date": "23/06/2012 10:00",
     "equipment": "BiPlane",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": true
     },
-    "procedure": "RF-Catheter-Ablation"
+    "procedure": "RF catheter ablation"
   },
   {
-    "date": "23/04/2012",
+    "eye": "left",
+    "date": "23/04/2012 12:00",
     "equipment": "Carm",
     "protSel": {
-      "cabin": false,
-      "glasses": true,
-      "shield": true
-    },
-    "procedure": "PM-resynchronisation"
-  },
-  {
-    "date": "23/04/2012",
-    "equipment": "NotRot",
-    "protSel": {
-      "cabin": false,
+      "shield": false,
       "glasses": false,
-      "shield": true
+      "cabin": true
     },
     "procedure": "Valvuloplasty"
   },
   {
-    "date": "23/04/2012",
-    "equipment": "BiPlane",
-    "protSel": {
-      "cabin": true,
-      "glasses": false,
-      "shield": false
-    },
-    "procedure": "CA+PCI"
-  },
-  {
-    "date": "23/04/2012",
-    "equipment": "BiPlane",
-    "protSel": {
-      "cabin": true,
-      "glasses": false,
-      "shield": true
-    },
-    "procedure": "PM-resynchronisation"
-  },
-  {
-    "date": "23/04/2012",
-    "equipment": "BiPlane",
-    "protSel": {
-      "cabin": true,
-      "glasses": true,
-      "shield": true
-    },
-    "procedure": "PVI"
-  },
-  {
-    "date": "23/04/2012",
-    "equipment": "Carm",
-    "protSel": {
-      "cabin": true,
-      "glasses": true,
-      "shield": true
-    },
-    "procedure": "CA"
-  },
-  {
-    "date": "01/04/2012",
+    "eye": "left",
+    "date": "01/04/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": true
     },
-    "procedure": "CA+PCI"
+    "procedure": "CA + PCI (PTCA)"
   },
   {
-    "date": "23/04/2012",
-    "equipment": "Carm",
-    "protSel": {
-      "cabin": true,
-      "glasses": true,
-      "shield": true
-    },
-    "procedure": "CA+PCI"
-  },
-  {
-    "date": "23/02/2012",
+    "eye": "left",
+    "date": "23/02/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
@@ -141,87 +89,74 @@
     "procedure": "PVI"
   },
   {
-    "date": "02/07/2012",
+    "eye": "left",
+    "date": "02/07/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": true
     },
-    "procedure": "PM-Implantation"
+    "procedure": "PM implantation"
   },
   {
-    "date": "23/04/2012",
+    "eye": "left",
+    "date": "23/04/2012 10:00",
     "equipment": "BiPlane",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": true
     },
-    "procedure": "RF-Catheter-Ablation"
+    "procedure": "RF catheter ablation"
   },
   {
-    "date": "23/04/2012",
+    "eye": "left",
+    "date": "23/03/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": false
     },
-    "procedure": "PM-resynchronisation"
+    "procedure": "CA + PCI (PTCA)"
   },
   {
-    "date": "23/04/2012",
-    "equipment": "Carm",
-    "procedure": "Valvuloplasty",
-    "protSel": {
-      "cabin": false,
-      "glasses": false,
-      "shield": true
-    }
-  },
-  {
-    "date": "23/03/2012",
+    "eye": "left",
+    "date": "10/04/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
       "glasses": true,
       "shield": false
     },
-    "procedure": "CA+PCI"
+    "procedure": "RF catheter ablation"
   },
   {
-    "date": "10/04/2012",
-    "equipment": "Carm",
-    "protSel": {
-      "cabin": false,
-      "glasses": true,
-      "shield": false
-    },
-    "procedure": "RF-Catheter-Ablation"
-  },
-  {
-    "date": "23/07/2012",
+    "eye": "left",
+    "date": "23/07/2012 10:00",
     "equipment": "NotRot",
     "protSel": {
       "cabin": true,
       "glasses": false,
       "shield": false
     },
-    "procedure": "CA+PCI"
+    "procedure": "CA + PCI (PTCA)"
   },
   {
-    "date": "20/04/2012",
-    "equipment": "BiPlane",
+    "eye": "left",
+    "date": "20/04/2012 5:00",
+    "equipment": "NotRot",
     "protSel": {
-      "cabin": false,
+      "shield": false,
       "glasses": false,
-      "shield": true
+      "cabin": true
     },
     "procedure": "PM resynchronisation"
   },
   {
-    "date": "13/04/2012",
+    "eye": "left",
+    "date": "13/04/2012 10:00",
     "equipment": "Carm",
     "protSel": {
       "cabin": false,
@@ -229,5 +164,6 @@
       "shield": false
     },
     "procedure": "PVI"
+
   }
 ]

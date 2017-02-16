@@ -2,6 +2,8 @@ const webpack = require('webpack');
 const path = require('path');
 const loaders = require('./webpack.loaders');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CordovaPlugin = require('webpack-cordova-plugin');
+
 
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = process.env.PORT || '8888';
@@ -43,6 +45,12 @@ loaders.push({
   ]
 });
 
+loaders.push({
+  test: /cordova(\.js)?$/,
+  loader: 'script-loader'
+});
+
+
 // local css modules
 // loaders.push({
 //   test: /\.css$/,
@@ -63,8 +71,14 @@ module.exports = {
     path: path.join(__dirname, 'cordova/www'),
     filename: 'bundle.js'
   },
-  esolve: {
-    extensions: ['', '.js', '.jsx']
+  // externals: {
+  //   cordova: path.join(__dirname, '/cordova/platforms/browser/platform_www/cordova.js')
+  // },
+  resolve: {
+    extensions: ['', '.js', '.jsx'],
+    alias: {
+      cordova: path.join(__dirname, 'cordova/platforms/browser/platform_www/cordova.js')
+    }
   },
   module: {
     loaders
