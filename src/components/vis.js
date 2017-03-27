@@ -187,6 +187,7 @@ function prevInterval(intervalKey) {
 
 function update() {
   const self = this;
+
   const startDate = d3.min(self.data, d => d.date);
 
   const {
@@ -533,6 +534,8 @@ function update() {
 
 
 function create() {
+  const el = d3.select(this.el);
+  el.selectAll('*').remove();
   const {
     width,
     height,
@@ -549,7 +552,6 @@ function create() {
   } = this.dim;
 
   const data = this.data;
-  const el = this.el;
 
   const self = this;
 
@@ -848,7 +850,9 @@ function create() {
 class Vis {
   constructor(initState) {
     // TODO: move out instance vars
+    console.log('this', this);
     Object.keys(initState).forEach(k => (this[k] = initState[k]));
+    console.log('this', this);
     this.keys = keys;
     this.maxRad = 0;
     create.bind(this)();

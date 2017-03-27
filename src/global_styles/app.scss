@@ -1,26 +1,30 @@
 // @import '~materialize-css/bin/materialize.css';
 // @import '~bootstrap/dist/css/bootstrap.css';
 
-.onoffswitch {
-  position: relative; width: 90px;
-  -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+body {
+  // background: yellow;
+  width: 600px;
 }
-.onoffswitch-checkbox {
-  display: none;
-}
-.onoffswitch-label {
-  display: block;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid #999999;
-  // border-radius: 20px;
-}
-.onoffswitch-inner {
-  display: block;
-  width: 200%;
-  margin-left: -100%;
-  transition: margin 0.3s ease-in 0s;
-}
+// .onoffswitch {
+//   position: relative; width: 90px;
+//   -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+// }
+// .onoffswitch-checkbox {
+//   display: none;
+// }
+// .onoffswitch-label {
+//   display: block;
+//   overflow: hidden;
+//   cursor: pointer;
+//   border: 2px solid #999999;
+//   // border-radius: 20px;
+// }
+// .onoffswitch-inner {
+//   display: block;
+//   width: 200%;
+//   margin-left: -100%;
+//   transition: margin 0.3s ease-in 0s;
+// }
 
 // .onoffswitch-inner:before, .onoffswitch-inner:after {
 //   display: block;

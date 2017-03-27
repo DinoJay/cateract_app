@@ -26,7 +26,7 @@
             <span class="text-muted">Toggleable via the navbar brand.</span>
           </div>
         </div>
-        <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+        <nav class="navbar navbar-light bg-faded" style="width: 600px;"  >
           <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -34,12 +34,12 @@
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <div class="navbar-nav mr-auto">
               <div class="row">
-                <label for="lgFormGroupInput" class="col-sm-2 col-form-label col-form-label-lg">
+                <label for="lgFormGroupInput" class="col-sm-3 col-form-label col-form-label-lg">
                   Selection
                 </label >
                 <div class="col-sm-10">
                   <div class="form-check form-check-inline">
-                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                    <label class="custom-control custom-checkbox">
                       <span class="custom-control-description">Left Eye</span>
                       <input type="checkbox" id="left-eye-sel" class="custom-control-input"
                                                                checked>
@@ -47,7 +47,7 @@
                     </label>
                   </div>
                   <div class="form-check form-check-inline">
-                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                    <label class="custom-control custom-checkbox">
                       <span class="custom-control-description">Right Eye</span>
                       <input type="checkbox" id="right-eye-sel" class="custom-control-input">
                       <span class="custom-control-indicator" ></span>
@@ -56,12 +56,12 @@
                 </div>
               </div>
               <div class="row">
-                <label for="lgFormGroupInput" class="col-sm-2 col-form-label col-form-label-lg">
+                <label for="lgFormGroupInput" class="col-sm-4 col-form-label col-form-label-lg">
                   View
                 </label >
                 <div class="col-sm-10">
                   <div class="form-check form-check-inline">
-                    <label class="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
+                    <label class="custom-control custom-checkbox">
                       <span class="custom-control-description">Procedure</span>
                       <input type="radio" id="procedure-sel" name="aggr" class="custom-control-input">
                       <span class="custom-control-indicator" ></span>
@@ -76,10 +76,38 @@
                   </div>
                 </div>
               </div>
+              <div>
+                <div class="row">
+                  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+                    Enter Data
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- <form> -->
+        </nav>
+          </div>
+
+
+          <!-- Modal -->
+          <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Enter Procedures</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div id="modalBody" class="modal-body">
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+              </div>
             </div>
           </div>
-          <!-- <form> -->
-        </nav>
       </div>
       <div id="app"></div>
     </div>
