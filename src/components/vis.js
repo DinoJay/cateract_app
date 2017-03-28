@@ -708,7 +708,7 @@ function create() {
       // .style('text-anchor', 'middle')
       .attr('fill', 'black')
       // .style('font-size', 20)
-      .attr('opacity', d => d === 0.5 ? 0.7 : 0.3)
+      .attr('opacity', d => (d === 0.5 ? 0.7 : 0.3))
       .attr('transform', d => `translate(${shapePosScale(d)}, ${legendHeight / 2})`);
       // .text(d => d.key);
       // .attr('fill', 'grey');
@@ -729,7 +729,7 @@ function create() {
       .attr('transform', `translate(${0},${brushHeight + brushMargin})`);
 
     radLegend.append('rect')
-      .attr('width', width / 2 - centerWidth / 2)
+      .attr('width', (width / 2) - (centerWidth / 2))
       .attr('height', legendHeight)
       .style('fill', 'url(#full-gradient)');
     // make legend
@@ -769,7 +769,7 @@ function create() {
 
   gMain.append('g')
     .attr('class', 'right')
-    .attr('transform', `translate(${width / 2 + centerWidth / 2},${0})`);
+    .attr('transform', `translate(${(width / 2) + (centerWidth / 2)},${0})`);
 
   gCenter.append('g')
     .attr('class', 'date-axis');
@@ -855,6 +855,11 @@ class Vis {
     console.log('this', this);
     this.keys = keys;
     this.maxRad = 0;
+    // create.bind(this)();
+  }
+
+
+  init() {
     create.bind(this)();
   }
 

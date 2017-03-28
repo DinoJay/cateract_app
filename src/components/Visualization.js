@@ -25,9 +25,9 @@ function getEntry(d, e, eye) {
 
 // const keys = ['shield', 'glasses', 'cabin'];
 
-function lookUpProtection(e) {
+function lookUpProtection(e, conf) {
   const refEntry = refData
-    .find(d => getEntry(d, e, 'left'));
+    .find(d => getEntry(d, e, conf.eye));
 
   return refEntry ? {
     shield: refEntry.shieldLevel,
@@ -40,14 +40,15 @@ function lookUpProtection(e) {
   };
 }
 
-function lookupRadiation(e, config) {
+function lookupRadiation(e, conf) {
   // TODO
-  const refEntry = refData.find(d => getEntry(d, e, 'left'));
+  const refEntry = refData.find(d => getEntry(d, e, conf.eye));
   return refEntry ? refEntry.radiation : 0;
 }
 
 function filterData(data, config) {
   if (!config.aggrSel) {
+    console.log('eyes');
     const ret = data.map((e) => {
       e.radiation = lookupRadiation(e, config);
       e.protection = lookUpProtection(e, config);
@@ -55,6 +56,7 @@ function filterData(data, config) {
     });
     return ret;
   }
+
   const redData = data.reduce(({ acc, sum }, e) => {
     const newSum = sum + lookupRadiation(e, config);
     e.radiation = newSum;
@@ -73,29 +75,6 @@ function filterData(data, config) {
   // };
 }
 
-function getUIConfig() {
-  const leftChecked = d3.select('#left-eye-sel').property('checked');
-  const rightChecked = d3.select('#right-eye-sel').property('checked');
-
-  const aggrSel = d3.select('#aggr-sel').property('checked');
-
-  let eye;
-  if (leftChecked && rightChecked) {
-    eye = 'both';
-  }
-  if (leftChecked) {
-    eye = 'left';
-  }
-  if (rightChecked) {
-    eye = 'both';
-  }
-
-  return {
-    eye,
-    aggrSel
-  };
-}
-
 function protClickCallback(prot, data) {
   console.log('prot selected', prot.selected);
   const changedData = data.map((e) => {
@@ -105,20 +84,15 @@ function protClickCallback(prot, data) {
     return e;
   });
 
-  console.log('changedData', changedData);
-  const newData = filterData(changedData, getUIConfig());
+  const newData = filterData(changedData, this.props);
   return newData;
 }
 
+let VisObj;
 class Visualization extends React.Component {
   constructor(props) {
     // Pass props to parent class
     super(props);
-
-
-    this.state = {
-      Vis: null
-    };
   }
 
   componentWillReceiveProps(nextProps) {
@@ -132,7 +106,7 @@ class Visualization extends React.Component {
   //   });
   // }
 
-  componentDidUpdate() {
+  componentDidMount() {
     // Set initial state
     const brushHandleSize = 40;
     const brushHeight = 50;
@@ -167,33 +141,56 @@ class Visualization extends React.Component {
       outerMargin
     };
 
-    console.log('mount', this.props);
 
-    const VisObj = new Vis({
+    VisObj = new Vis({
       el: this.Vis,
       dim,
-      data: filterData(this.props.data, getUIConfig()),
-      callback: protClickCallback,
+      data: filterData(this.props.data, this.props),
+      callback: protClickCallback.bind(this),
       threshhold: 0.02
     });
-    // this.setState({ Vis: });
 
-    const onClick = () => {
-      const config = getUIConfig();
-      const filteredData = filterData(this.props.data, config);
+    // VisObj.setState({
+    //   data: filterData(this.props.data, this.props)
+    // });
 
-      VisObj.setState({
-        data: filteredData
-      });
-    };
-
-    d3.select('#left-eye-sel').on('click', onClick);
-    d3.select('#right-eye-sel').on('click', onClick);
-
-    d3.select('#procedure-sel').on('click', onClick);
-    d3.select('#aggr-sel').on('click', onClick);
+    // const onClick = () => {
+    //   // const config = getUIConfig();
+    //   const filteredData = filterData(this.props.data, this.props);
+    //
+    //   VisObj.setState({
+    //     data: filteredData
+    //   });
+    // };
+    //
+    // d3.select('#left-eye-sel').on('click', onClick);
+    // d3.select('#right-eye-sel').on('click', onClick);
+    //
+    // d3.select('#procedure-sel').on('click', onClick);
+    // d3.select('#aggr-sel').on('click', onClick);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.data.length !== prevProps.data.length) {
+      VisObj.data = filterData(this.props.data, this.props);
+      VisObj.init();
+    } else {
+      const fd = filterData(this.props.data, this.props);
+      console.log('fd', fd);
+      console.log('props', this.props);
+      VisObj.setState({
+        data: fd
+      });
+    }
+  }
+
+  // clickHandler() {
+  //
+  //
+  // }
+  // shouldComponentUpdate(nextProps) {
+  //   return nextProps.data.length !== this.props.data.length;
+  // }
 
   render() {
     return (
