@@ -16,10 +16,13 @@
   "license": "MIT",
   "homepage": "https://github.com/alicoding/react-webpack-babel#readme",
   "dependencies": {
-    "bootstrap": "^4.0.0-alpha.5",
+    "bootstrap": "^4.0.0-alpha.6",
     "d3": "^4.4.0",
     "d3-symbol-extra": "^0.1.0",
+    "moment": "^2.18.1",
     "react": "15.4.1",
+    "react-bootstrap-date-picker": "^5.0.1",
+    "react-datepicker": "^0.44.0",
     "react-dom": "15.4.1"
   },
   "devDependencies": {

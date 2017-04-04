@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import 'cordova';
+// import 'cordova_plugins';
 
 import './global_styles/app.scss';
 import Visualization from './components/Visualization';
@@ -27,7 +28,8 @@ class App extends React.Component {
     // Set initial state
     this.state = {
       data: [],
-      eye: 'left',
+      leftEye: true,
+      rightEye: false,
       aggrSel: false
     };
   }
@@ -50,7 +52,7 @@ class App extends React.Component {
     const offsetX = 30;
     const offsetY = 50;
     const width = window.innerWidth - outerMargin.left - outerMargin.right - offsetX;
-    const height = window.innerHeight - outerMargin.top - outerMargin.bottom - offsetY;
+    const height = window.innerHeight - outerMargin.top - outerMargin.bottom - innerMargin.top;
     const subHeight = height - innerMargin.top - innerMargin.bottom;
     const centerWidth = 50;
 
@@ -103,15 +105,15 @@ class App extends React.Component {
     });
   }
 
-  clickHandler(eye, aggrSel) {
-    this.setState({ eye, aggrSel });
+  clickHandler({ leftEye, rightEye, aggrSel }) {
+    this.setState({ leftEye, rightEye, aggrSel });
   }
-
+//
   render() {
     return (
-      <div >
-        <Collapsible clickHandler={this.clickHandler.bind(this)} />
-        <Visualization eye={this.state.eye} aggrSel={this.state.aggrSel} data={this.state.data} />
+      <div>
+        <Collapsible {...this.state} clickHandler={this.clickHandler.bind(this)} />
+        <Visualization {...this.state} data={this.state.data} />
       </div>
     );
   }
@@ -131,6 +133,10 @@ const app = {
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
   onDeviceReady() {
+    // alert(window.innerWidth);
+    // window.plugins.screensize.get(d => alert(d.width), err => console.log('err', err));
+    // window.onload(() => {
+    alert(NativeStorage);
     ReactDOM.render(<App />, document.getElementById('app'));
   },
 

@@ -68,7 +68,7 @@ module.exports = {
   ],
   devtool: process.env.WEBPACK_DEVTOOL || 'cheap-module-source-map',
   output: {
-    path: path.join(__dirname, 'cordova/www'),
+    path: path.join(__dirname, 'cordova/platforms/browser/platform_www/'),
     filename: 'bundle.js'
   },
   // externals: {
@@ -84,7 +84,7 @@ module.exports = {
     loaders
   },
   devServer: {
-    contentBase: './cordova/www',
+    contentBase: './cordova/platforms/browser/platform_www/',
     // do not print bundle build stats
     noInfo: true,
     // enable HMR

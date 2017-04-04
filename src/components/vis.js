@@ -185,7 +185,7 @@ function prevInterval(intervalKey) {
 // }
 
 
-function update() {
+function _update() {
   const self = this;
 
   const startDate = d3.min(self.data, d => d.date);
@@ -484,7 +484,7 @@ function update() {
       .on('click', d => console.log('click radBar', d));
     // .style('opacity', d => ((d.key === 'right eye') ? 0.2 : 1))
     // .style('stroke', 'black')
-    // .on('click', () => update(data, dim));
+    // .on('click', () => _update(data, dim));
 
     radBar.merge(radBarEnter)
       .attr('x', function() { return d3.select(this).attr('x'); })
@@ -676,6 +676,7 @@ function create() {
 
             const newData = self.callback(d, data);
             self.setState({ data: newData });
+            self.update();
           });
           // .text(d => d.key);
 
@@ -830,6 +831,7 @@ function create() {
         .domain(d0);
 
       self.setState({ data, yDate, brush, brushScale });
+      self.update();
 
       if (s == null) {
         handle.attr('display', 'none');
@@ -859,13 +861,16 @@ class Vis {
   }
 
 
-  init() {
+  reset() {
     create.bind(this)();
+  }
+
+  update() {
+    _update.bind(this)();
   }
 
   setState(state) {
     Object.keys(state).forEach(k => (this[k] = state[k]));
-    update.bind(this)();
   }
 
 }

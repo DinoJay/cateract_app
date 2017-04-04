@@ -1,43 +1,189 @@
 import React from 'react';
+import DatePicker from 'react-datepicker';
+
+import moment from 'moment';
+
+import 'react-datepicker/dist/react-datepicker.css';
+
+console.log('DatePicker', DatePicker);
+
 const Title = () => (
   <div>
     <div>
-      <h1>Add Procedures</h1>
-    </div>
-  </div>
+      <h1>Add Procedures</h1> </div> </div>
   );
 
 const ProcForm = ({ addTodo }) => {
   // Input Tracker
   let input;
   // Return JSX
+  //
+  // p
+    <label htmlFor="procedure">Mobile</label>;
   return (
-    <div>
-      <input
-        ref={(node) => {
-          input = node;
-        }}
-      />
-      <button
-        onClick={() => {
-          addTodo(input.value);
-          input.value = '';
-        }}
-      >
-        +
-      </button>
-    </div>
+    <form className="">
+      <div className="btn-group" role="group" aria-label="First group">
+        <div className="btn-group">
+          <button
+            id="procedure" type="button" className="btn btn-secondary dropdown-toggle"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+          >
+              Procedure
+          </button>
+          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <a className="dropdown-item" href="#">Dropdown link</a>
+            <a className="dropdown-item" href="#">Dropdown link</a>
+          </div>
+        </div>
+
+        <div className="btn-group-vertical" role="group">
+          <button id="timerange" type="button" className="btn btn-secondary">
+            <DatePicker
+              selected={moment()}
+              onChange={() => console.log('change')}
+            />
+          </button>
+          <button type="button" className="btn btn-secondary">
+            <DatePicker
+              selected={moment()}
+              onChange={() => console.log('change')}
+            />
+          </button>
+        </div>
+        <div className="btn-group" role="group">
+          <button
+            id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+          >
+              Equipment
+          </button>
+          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <a className="dropdown-item" href="#">Dropdown link</a>
+            <a className="dropdown-item" href="#">Dropdown link</a>
+          </div>
+        </div>
+
+        <div className="btn-group" role="group">
+          <button
+            id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+          >
+              Eye
+          </button>
+          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <a className="dropdown-item" href="#">Dropdown link</a>
+            <a className="dropdown-item" href="#">Dropdown link</a>
+          </div>
+        </div>
+        <div className="btn-group-vertical btn-group-sm">
+          <button type="button" className="btn btn-success">glasses</button>
+          <button type="button" className="btn btn-warning">Cabin</button>
+          <button type="button" className="btn btn-primary">Shield</button>
+        </div>
+
+        <div className="btn-group" role="group">
+          <button
+            ref={(node) => {
+              input = node;
+            }}
+            type="button" className="btn btn-secondary" onClick={() => {
+              addTodo(input.value);
+              input.value = '';
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </form>
   );
 };
 
 const Todo = ({ todo, remove }) =>
-  // Each Todo
-   (<li onClick={() => { remove(todo.id); }}>{todo.text}</li>);
+   (<li className="list-group-item" onClick={() => { remove(todo.id); }}>
+     <form className="">
+       <div className="btn-group " role="group" aria-label="First group">
+         <div className="btn-group btn-group-sm">
+           <button
+             id="procedure" type="button" className="btn btn-secondary dropdown-toggle"
+             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+           >
+              Procedure
+          </button>
+           <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+             <a className="dropdown-item" href="#">Dropdown link</a>
+             <a className="dropdown-item" href="#">Dropdown link</a>
+           </div>
+         </div>
+
+         <div className="btn-group-vertical btn-group-sm" role="group">
+           <button id="timerange" type="button" className="btn btn-secondary">
+             <DatePicker
+               selected={moment()}
+               onChange={() => console.log('change')}
+             />
+           </button>
+           <button type="button" className="btn btn-secondary">
+             <DatePicker
+               selected={moment()}
+               onChange={() => console.log('change')}
+             />
+           </button>
+         </div>
+         <div className="btn-group btn-group-sm" role="group">
+           <button
+             id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
+             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+           >
+              Equipment
+          </button>
+           <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+             <a className="dropdown-item" href="#">Dropdown link</a>
+             <a className="dropdown-item" href="#">Dropdown link</a>
+           </div>
+         </div>
+
+         <div className="btn-group btn-group-sm" role="group">
+           <button
+             id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
+             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+           >
+              Eye
+          </button>
+           <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+             <a className="dropdown-item" href="#">Dropdown link</a>
+             <a className="dropdown-item" href="#">Dropdown link</a>
+           </div>
+         </div>
+         <div className="btn-group-vertical btn-group-sm">
+           <button type="button" className="btn btn-success">glasses</button>
+           <button type="button" className="btn btn-warning">Cabin</button>
+           <button type="button" className="btn btn-primary">Shield</button>
+         </div>
+         <div className="btn-group" role="group">
+           <button
+             type="button" className="btn btn-danger" onClick={() => { }}
+           >
+             <span aria-hidden="true">×</span>
+           </button>
+         </div>
+       </div>
+
+     </form>
+   </li>);
 
 const ProcList = ({ todos, remove }) => {
   // Map through the todos
   const todoNode = todos.map(todo => (<Todo todo={todo} key={todo.id} remove={remove} />));
-  return (<ul>{todoNode}</ul>);
+  return (
+    <div className="container" style={{ marginTop: '20px' }}>
+      <div className="row">
+        <ul className="list-group">
+          {todoNode}
+        </ul>
+      </div>
+    </div>
+  );
 };
 
 

@@ -15,7 +15,8 @@ const refData = rawRefData.map((d) => {
   return d;
 });
 
-function getEntry(d, e, eye) {
+function getEntry(d, e, conf) {
+  const eye = conf.leftEye ? 'left' : 'right';
   return (
     d.eye === eye && d.equipment === e.equipment &&
     d.procedure === e.procedure && d.shield === e.protSel.shield &&
@@ -27,7 +28,7 @@ function getEntry(d, e, eye) {
 
 function lookUpProtection(e, conf) {
   const refEntry = refData
-    .find(d => getEntry(d, e, conf.eye));
+    .find(d => getEntry(d, e, conf));
 
   return refEntry ? {
     shield: refEntry.shieldLevel,
@@ -42,7 +43,7 @@ function lookUpProtection(e, conf) {
 
 function lookupRadiation(e, conf) {
   // TODO
-  const refEntry = refData.find(d => getEntry(d, e, conf.eye));
+  const refEntry = refData.find(d => getEntry(d, e, conf));
   return refEntry ? refEntry.radiation : 0;
 }
 
@@ -113,15 +114,15 @@ class Visualization extends React.Component {
     const brushMargin = 65;
     const legendHeight = 35;
     const legendMargin = 10;
-    const outerMargin = { top: 20, right: 0, bottom: 0, left: 0 };
+    const outerMargin = { top: 0, right: 0, bottom: 0, left: 0 };
     const innerMargin = {
       top: brushHeight + brushMargin + legendHeight + legendMargin,
       right: 0,
       bottom: 0,
       left: 0
     };
-    const offsetX = 30;
-    const offsetY = 50;
+    const offsetX = 0;
+    const offsetY = 0;
     const width = window.innerWidth - outerMargin.left - outerMargin.right - offsetX;
     const height = window.innerHeight - outerMargin.top - outerMargin.bottom - offsetY;
     const subHeight = height - innerMargin.top - innerMargin.bottom;
@@ -172,15 +173,12 @@ class Visualization extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.data.length !== prevProps.data.length) {
-      VisObj.data = filterData(this.props.data, this.props);
-      VisObj.init();
+      VisObj.setState({ data: filterData(this.props.data, this.props) });
+      VisObj.reset();
     } else {
       const fd = filterData(this.props.data, this.props);
-      console.log('fd', fd);
-      console.log('props', this.props);
-      VisObj.setState({
-        data: fd
-      });
+      VisObj.setState({ data: fd });
+      VisObj.update();
     }
   }
 
