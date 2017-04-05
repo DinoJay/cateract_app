@@ -29,8 +29,8 @@ export default class Collapsible extends React.Component {
 
   render() {
     return (
-      <div>
-        <div className="">
+      <div className="container">
+        <div >
           <nav className="navbar navbar-light bg-faded" >
             <button
               className="navbar-toggler navbar-toggler-right" type="button"
@@ -97,30 +97,22 @@ export default class Collapsible extends React.Component {
                   View
                 </label >
                   <div className="col-sm-10">
-                    <div className="form-check form-check-inline">
-                      <label className="custom-control custom-checkbox">
-                        <span className="custom-control-description">Procedure</span>
-                        <input
-                          type="checkbox"
-                          onClick={this._onClickView.bind(this)}
-                          className="custom-control-input"
-                          checked={this.state.aggrSel}
-                        />
-                        <span className="custom-control-indicator" />
-                      </label>
-                    </div>
-                    <div className="form-check form-check-inline">
-                      <label className="custom-control custom-checkbox mb-12 mr-sm-12 mb-sm-12">
-                        <span className="custom-control-description">Sum</span>
-                        <input
-                          type="radio"
-                          onClick={this._onClickView.bind(this)}
-                          className="custom-control-input"
-                          checked={!this.state.aggrSel}
-                        />
-                        <span className="custom-control-indicator" />
-                      </label>
-                    </div>
+                    <label className="custom-control custom-radio">
+                      <input
+                        onClick={this._onClickView.bind(this)}
+                        id="radio1" name="radio" type="radio" className="custom-control-input"
+                      />
+                      <span className="custom-control-indicator" />
+                      <span className="custom-control-description">Procedure</span>
+                    </label>
+                    <label className="custom-control custom-radio">
+                      <input
+                        onClick={this._onClickView.bind(this)}
+                        id="radio2" name="radio" type="radio" className="custom-control-input"
+                      />
+                      <span className="custom-control-indicator" />
+                      <span className="custom-control-description">Accumulation</span>
+                    </label>
                   </div>
                 </div>
                 <div>

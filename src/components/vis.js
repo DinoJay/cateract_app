@@ -14,7 +14,7 @@ const arrowSize = d3.scaleOrdinal()
 
 const protColor = d3.scaleOrdinal()
     .domain(keys)
-    .range(['rgb(55, 126, 184)', 'rgb(77, 175, 74)', 'rgb(166, 86, 40)']);
+    .range(['#0275d8', '#5cb85c', '#f0ad4e']);
 
 
 const iconSize = 30;

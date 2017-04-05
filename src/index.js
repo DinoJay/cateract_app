@@ -133,10 +133,6 @@ const app = {
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
   onDeviceReady() {
-    // alert(window.innerWidth);
-    // window.plugins.screensize.get(d => alert(d.width), err => console.log('err', err));
-    // window.onload(() => {
-    alert(NativeStorage);
     ReactDOM.render(<App />, document.getElementById('app'));
   },
 

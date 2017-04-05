@@ -13,174 +13,166 @@ const Title = () => (
       <h1>Add Procedures</h1> </div> </div>
   );
 
-const ProcForm = ({ addTodo }) => {
-  // Input Tracker
-  let input;
-  // Return JSX
-  //
-  // p
-    <label htmlFor="procedure">Mobile</label>;
-  return (
-    <form className="">
-      <div className="btn-group" role="group" aria-label="First group">
-        <div className="btn-group">
-          <button
-            id="procedure" type="button" className="btn btn-secondary dropdown-toggle"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-          >
-              Procedure
-          </button>
-          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-            <a className="dropdown-item" href="#">Dropdown link</a>
-            <a className="dropdown-item" href="#">Dropdown link</a>
+
+class OperationForm extends React.Component {
+  constructor(props) {
+    // Pass props to parent class
+    super(props);
+    // Set initial state
+    this.state = {
+      procedure: 'CA',
+      equipment: 'Carm',
+      glasses: false,
+      shield: false,
+      cabin: false,
+      startDate: moment(),
+      endDate: moment()
+    };
+  }
+
+  render() {
+    return (
+      <form className="container">
+        <div className="form-group">
+          <div className="row">
+            <div className="col-sm-3">
+              <div className="row justify-content-center">
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Procedure</label>
+              </div>
+
+              <div className="row justify-content-center">
+                <div className="equip-proc" role="group">
+                  <select className="form-control" id="exampleSelect1" ref={d => (this.procedure = d)}>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-sm-3">
+              <div className="row justify-content-center">
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Equipment</label>
+              </div>
+              <div className="row">
+                <div className="equip-proc">
+                  <select className="form-control" id="exampleSelect1" ref={d => (this.equipment = d)}>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-3">
+              <div className="row justify-content-center">
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Protection</label>
+              </div>
+              <div className="row">
+                <div className="protection btn-group-sm">
+                  <button
+                    type="button" className="btn btn-success" style={{ opacity: this.state.glasses ? 1 : 0.5 }}
+                    onClick={() => (this.setState({ glasses: !this.state.glasses }))}
+                  >
+                    glasses
+                  </button>
+                  <button
+                    type="button" className="btn btn-warning" style={{ opacity: this.state.cabin ? 1 : 0.5 }}
+                    onClick={() => (this.setState({ cabin: !this.state.cabin }))}
+                  >
+                    Cabin
+                  </button>
+                  <button
+                    type="button" className="btn btn-primary" style={{ opacity: this.state.shield ? 1 : 0.5 }}
+                    onClick={() => (this.setState({ shield: !this.state.shield }))}
+                  >
+                    Shield
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-3">
+              <div className="row justify-content-center">
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Protection</label>
+              </div>
+              <div className="row">
+                <div className="datepicker btn-group-vertical btn-group-sm">
+                  <button id="timerange" type="button" className="btn btn-secondary">
+                    <DatePicker
+                      ref={d => (this.startDate = d)}
+                      selected={this.state.startDate}
+                      onChange={d => this.setState({ startDate: d })}
+                    />
+                  </button>
+                  <button type="button" className="btn btn-secondary">
+                    <DatePicker
+                      ref={d => (this.endDate = d)}
+                      selected={this.state.endDate}
+                      onChange={d => this.setState({ endDate: d })}
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="btn-group-vertical" role="group">
-          <button id="timerange" type="button" className="btn btn-secondary">
-            <DatePicker
-              selected={moment()}
-              onChange={() => console.log('change')}
-            />
-          </button>
-          <button type="button" className="btn btn-secondary">
-            <DatePicker
-              selected={moment()}
-              onChange={() => console.log('change')}
-            />
-          </button>
-        </div>
-        <div className="btn-group" role="group">
+        <div className="form-group">
           <button
-            id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-          >
-              Equipment
-          </button>
-          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-            <a className="dropdown-item" href="#">Dropdown link</a>
-            <a className="dropdown-item" href="#">Dropdown link</a>
-          </div>
-        </div>
-
-        <div className="btn-group" role="group">
-          <button
-            id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-          >
-              Eye
-          </button>
-          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-            <a className="dropdown-item" href="#">Dropdown link</a>
-            <a className="dropdown-item" href="#">Dropdown link</a>
-          </div>
-        </div>
-        <div className="btn-group-vertical btn-group-sm">
-          <button type="button" className="btn btn-success">glasses</button>
-          <button type="button" className="btn btn-warning">Cabin</button>
-          <button type="button" className="btn btn-primary">Shield</button>
-        </div>
-
-        <div className="btn-group" role="group">
-          <button
-            ref={(node) => {
-              input = node;
+            type="button" className="btn btn-primary btn-lg btn-block"
+            onClick={() => {
+              this.props.addOperation(Object.assign({}, this.state));
             }}
-            type="button" className="btn btn-secondary" onClick={() => {
-              addTodo(input.value);
-              input.value = '';
-            }}
           >
-            +
-          </button>
+        Add!
+      </button>
+
         </div>
-      </div>
-    </form>
-  );
-};
+      </form>
+    );
+  }
+}
+const Operation = ({ data, remove }) => (
+  <tr onClick={() => { remove(todo.id); }}>
+    <th scope="row">{data.id}</th>
+    <td>{ data.procedure }</td>
+    <td>{ data.equipment }</td>
+    <td>
+      <div className="">{data.startDate.format('DD-MM-YYYY')}</div>
+      <div className="">{data.startDate.format('DD-MM-YYYY')}</div>
+    </td>
+    <td> { data.glasses } </td>
+    <td> <button type="button" className="btn btn-sm btn-danger img-circle">x</button> </td>
+  </tr>
+);
 
-const Todo = ({ todo, remove }) =>
-   (<li className="list-group-item" onClick={() => { remove(todo.id); }}>
-     <form className="">
-       <div className="btn-group " role="group" aria-label="First group">
-         <div className="btn-group btn-group-sm">
-           <button
-             id="procedure" type="button" className="btn btn-secondary dropdown-toggle"
-             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-           >
-              Procedure
-          </button>
-           <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-             <a className="dropdown-item" href="#">Dropdown link</a>
-             <a className="dropdown-item" href="#">Dropdown link</a>
-           </div>
-         </div>
-
-         <div className="btn-group-vertical btn-group-sm" role="group">
-           <button id="timerange" type="button" className="btn btn-secondary">
-             <DatePicker
-               selected={moment()}
-               onChange={() => console.log('change')}
-             />
-           </button>
-           <button type="button" className="btn btn-secondary">
-             <DatePicker
-               selected={moment()}
-               onChange={() => console.log('change')}
-             />
-           </button>
-         </div>
-         <div className="btn-group btn-group-sm" role="group">
-           <button
-             id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
-             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-           >
-              Equipment
-          </button>
-           <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-             <a className="dropdown-item" href="#">Dropdown link</a>
-             <a className="dropdown-item" href="#">Dropdown link</a>
-           </div>
-         </div>
-
-         <div className="btn-group btn-group-sm" role="group">
-           <button
-             id="btnGroupDrop1" type="button" className="btn btn-secondary dropdown-toggle"
-             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-           >
-              Eye
-          </button>
-           <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-             <a className="dropdown-item" href="#">Dropdown link</a>
-             <a className="dropdown-item" href="#">Dropdown link</a>
-           </div>
-         </div>
-         <div className="btn-group-vertical btn-group-sm">
-           <button type="button" className="btn btn-success">glasses</button>
-           <button type="button" className="btn btn-warning">Cabin</button>
-           <button type="button" className="btn btn-primary">Shield</button>
-         </div>
-         <div className="btn-group" role="group">
-           <button
-             type="button" className="btn btn-danger" onClick={() => { }}
-           >
-             <span aria-hidden="true">×</span>
-           </button>
-         </div>
-       </div>
-
-     </form>
-   </li>);
-
-const ProcList = ({ todos, remove }) => {
-  // Map through the todos
-  const todoNode = todos.map(todo => (<Todo todo={todo} key={todo.id} remove={remove} />));
+const OperationList = ({ operations, remove }) => {
+  // Map through the operations
+  console.log('Operations', operations);
+  const opNodes = operations.map(op => (<Operation data={op} key={op.id} remove={remove} />));
   return (
     <div className="container" style={{ marginTop: '20px' }}>
       <div className="row">
-        <ul className="list-group">
-          {todoNode}
-        </ul>
+
+        <ul className="list-group" />
+        <table className="table">
+          <thead className="">
+            <tr>
+              <th>#</th>
+              <th>Procedure</th>
+              <th>Equipment</th>
+              <th>TimeRange</th>
+            </tr>
+          </thead>
+          <tbody>
+            {opNodes}
+          </tbody>
+        </table>
+
       </div>
     </div>
   );
@@ -197,17 +189,17 @@ export default class TodoApp extends React.Component {
     };
   }
   // Add todo handler
-  addTodo(val) {
+  addOperation(op) {
     // Assemble data
-    const todo = { text: val, id: window.id++ };
+    op.id = this.state.data.length + 1;
     // Update data
-    this.state.data.push(todo);
+    this.state.data.push(op);
     // Update state
     this.setState({ data: this.state.data });
   }
   // Handle remove
   handleRemove(id) {
-    // Filter all todos except the one to be removed
+    // Filter all operations except the one to be removed
     const remainder = this.state.data.filter((todo) => {
       if (todo.id !== id) return todo;
     });
@@ -216,12 +208,12 @@ export default class TodoApp extends React.Component {
   }
 
   render() {
-    // Render JSX
+    console.log('render', this.state);
     return (
       <div>
-        <ProcForm addTodo={this.addTodo.bind(this)} />
-        <ProcList
-          todos={this.state.data}
+        <OperationForm addOperation={this.addOperation.bind(this)} />
+        <OperationList
+          operations={this.state.data}
           remove={this.handleRemove.bind(this)}
         />
       </div>

@@ -4,25 +4,45 @@ const path = require('path');
 const loaders = require('./webpack.loaders');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WebpackCleanupPlugin = require('webpack-cleanup-plugin');
+// const WebpackCleanupPlugin = require('webpack-cleanup-plugin');
 
-// local css modules
+// global css
 loaders.push({
-  test: /[\/\\]src[\/\\].*\.css/,
-  exclude: /(node_modules|bower_components|public)/,
-  loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]')
+  test: /\.css$/,
+  exclude: /[\/\\]src[\/\\]/,
+  // include: /[\/\\](globalStyles)[\/\\]/,
+  loaders: [
+    'style?sourceMap',
+    'css'
+  ]
 });
+
+
+// global scss
+loaders.push(
+  {
+    test: /\.scss$/,
+  // exclude: /[\/\\]src[\/\\]/,
+    include: /[\/\\](global_styles)[\/\\]/,
+    loaders: [
+      'style?sourceMap',
+      'css',
+      'sass'
+    ]
+  }
+);
 
 // local scss modules
 loaders.push({
-  test: /[\/\\]src[\/\\].*\.scss/,
-  exclude: /(node_modules|bower_components|public)/,
-  loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]!postcss!sass')
-});
-// global css files
-loaders.push({
-  test: /[\/\\](node_modules|global)[\/\\].*\.css$/,
-  loader: ExtractTextPlugin.extract('style', 'css')
+  test: /\.scss$/,
+  // exclude: /[\/\\](node_modules|bower_components|public|globalStyles)[\/\\]/,
+  include: /[\/\\](components)[\/\\]/,
+  loaders: [
+    'style?sourceMap',
+    'css?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]',
+    'postcss',
+    'sass'
+  ]
 });
 
 loaders.push({
