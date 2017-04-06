@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import _ from 'lodash';
 
 import 'cordova';
 // import 'cordova_plugins';
@@ -25,6 +26,8 @@ class App extends React.Component {
   constructor(props) {
     // Pass props to parent class
     super(props);
+    this.clickHandler = this.clickHandler.bind(this);
+    this.dataChangeHandler = this.dataChangeHandler.bind(this);
     // Set initial state
     this.state = {
       data: [],
@@ -70,50 +73,50 @@ class App extends React.Component {
       outerMargin
     };
 
+    const stringData = localStorage.getItem('9');
+    if (stringData !== null) {
+      const rawData = JSON.parse(stringData);
+      console.log('rawData', rawData);
+      const newData = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
+      this.setState({ data: _.cloneDeep(newData) });
+    } else {
+      d3.json('testData.json', (error, rawData) => {
+        const data = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
+        localStorage.setItem('9', JSON.stringify(rawData));
+        this.setState({ data: _.cloneDeep(data) });
+      });
+    }
+    // localStorage.setItem('6', JSON.stringify(ArrayData));
 
-    d3.json('testData.json', (error, rawData) => {
-      if (error) throw error;
-      const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
-
-      this.setState({ data });
-
-    //   const VisObj = new Vis({
-    //     el: this.Vis,
-    //     dim,
-    //     data: filtered,
-    //     callback: protClickCallback,
-    //     threshhold: 0.02
+    // NativeStorage.getItem('5', (rawData) => {
+    //   console.log('data exists', rawData);
+    // }, () => {
+    //   d3.json('testData.json', (error, rawData) => {
+    //     console.log('init', rawData);
+    //     if (error) throw error;
+    //     NativeStorage.setItem('5', rawData, () => {
+    //       const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
+    //       this.setState({ data: _.cloneDeep(data) });
+    //     }, err => console.log('err'));
     //   });
-    //
-    //   function clickHandler() {
-    //     const config = getUIConfig();
-    //     const filteredData = filterData(data, config);
-    //   // if (!config.leftEye && !config.rightEye) {
-    //   //   d3.event.preventDefault();
-    //   //   return;
-    //   // }
-    //     VisObj.setState({
-    //       data: filteredData
-    //     });
-    //   }
-    //
-    //   d3.select('#left-eye-sel').on('click', clickHandler);
-    //   d3.select('#right-eye-sel').on('click', clickHandler);
-    //
-    //   d3.select('#procedure-sel').on('click', clickHandler);
-    //   d3.select('#aggr-sel').on('click', clickHandler);
-    });
+    // });
   }
 
   clickHandler({ leftEye, rightEye, aggrSel }) {
     this.setState({ leftEye, rightEye, aggrSel });
   }
+
+  dataChangeHandler(newData) {
+    const rawData = JSON.parse(localStorage.getItem('9'));
+    localStorage.setItem('9', JSON.stringify(rawData.concat(newData)));
+    this.setState({ data: this.state.data.concat(newData.map(preprocess)).sort((a, b) => a.date - b.date) });
+  }
 //
   render() {
     return (
       <div>
-        <Collapsible {...this.state} clickHandler={this.clickHandler.bind(this)} />
-        <Visualization {...this.state} data={this.state.data} />
+        <Collapsible {...this.state} dataChangeHandler={this.dataChangeHandler} clickHandler={this.clickHandler} />
+        <Visualization {...this.state} />
       </div>
     );
   }

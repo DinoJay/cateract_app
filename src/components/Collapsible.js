@@ -1,13 +1,10 @@
-import React from 'react';
-import * as d3 from 'd3';
+import React, { PropTypes } from 'react';
 import ProcedureForm from './ProcedureForm';
-
 
 export default class Collapsible extends React.Component {
   constructor(props) {
     // Pass props to parent class
     super(props);
-
     this.state = props;
   }
 
@@ -23,7 +20,7 @@ export default class Collapsible extends React.Component {
     };
 
     if (!newState.leftEye && !newState.rightEye) return;
-    this.props.clickHandler(newState);
+    this.props.configHandler(newState);
     this.setState(newState);
   }
 
@@ -44,9 +41,12 @@ export default class Collapsible extends React.Component {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <div className="navbar-nav mr-auto">
                 <div className="row">
-                  <label htmlFor="lgFormGroupInput" className="col-sm-3 col-form-label col-form-label-lg">
+                  <label
+                    htmlFor="lgFormGroupInput"
+                    className="col-sm-3 col-form-label col-form-label-lg"
+                  >
                   Selection
-                </label >
+                  </label >
                   <div className="col-sm-10">
                     <div className="form-check form-check-inline">
                       <label className="custom-control custom-checkbox">
@@ -59,7 +59,7 @@ export default class Collapsible extends React.Component {
                               rightEye: this.state.rightEye,
                               aggrSel: this.state.aggrSel
                             };
-                            this.props.clickHandler(newState);
+                            this.props.configHandler(newState);
                             this.setState(newState);
                           }}
                           className="custom-control-input"
@@ -81,7 +81,7 @@ export default class Collapsible extends React.Component {
                             };
 
                             if (!newState.leftEye && !newState.rightEye) return;
-                            this.props.clickHandler(newState);
+                            this.props.configHandler(newState);
                             this.setState(newState);
                           }}
                           className="custom-control-input"
@@ -101,6 +101,7 @@ export default class Collapsible extends React.Component {
                       <input
                         onClick={this._onClickView.bind(this)}
                         id="radio1" name="radio" type="radio" className="custom-control-input"
+                        checked={!this.state.aggrSel}
                       />
                       <span className="custom-control-indicator" />
                       <span className="custom-control-description">Procedure</span>
@@ -109,6 +110,7 @@ export default class Collapsible extends React.Component {
                       <input
                         onClick={this._onClickView.bind(this)}
                         id="radio2" name="radio" type="radio" className="custom-control-input"
+                        checked={this.state.aggrSel}
                       />
                       <span className="custom-control-indicator" />
                       <span className="custom-control-description">Accumulation</span>
@@ -137,14 +139,7 @@ export default class Collapsible extends React.Component {
                     <span aria-hidden="true">&times;</span>
                   </button>
                 </div>
-                <div id="modalBody" className="modal-body" >
-                  <ProcedureForm />
-                </div>
-
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                  <button type="button" className="btn btn-primary">Save changes</button>
-                </div>
+                <ProcedureForm {...this.props} />
               </div>
             </div>
           </div>
@@ -154,3 +149,7 @@ export default class Collapsible extends React.Component {
   }
 
 }
+
+Collapsible.propTypes = {
+  configHandler: PropTypes.func
+};

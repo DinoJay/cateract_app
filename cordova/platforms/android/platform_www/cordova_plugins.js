@@ -33,7 +33,8 @@ module.exports.metadata =
     "cordova-plugin-whitelist": "1.3.1",
     "cordova-plugin-crosswalk-webview": "2.3.0",
     "cordova-plugin-screensize": "1.3.1",
-    "cordova-plugin-nativestorage": "2.2.2"
+    "cordova-plugin-nativestorage": "2.2.2",
+    "cordova-plugin-console": "1.0.6"
 };
 // BOTTOM OF METADATA
 });

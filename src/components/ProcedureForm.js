@@ -1,18 +1,43 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
 import DatePicker from 'react-datepicker';
+import * as d3 from 'd3';
 
 import moment from 'moment';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
-console.log('DatePicker', DatePicker);
+const formatTime = d3.timeFormat('%d/%m/%Y %H:%M');
 
-const Title = () => (
-  <div>
-    <div>
-      <h1>Add Procedures</h1> </div> </div>
-  );
+const procedures = [
+  'CA',
+  'CA + PCI (PTCA)',
+  'PM implantation',
+  'PM resynchronisation',
+  'RF catheter ablation',
+  'PVI',
+  'Valvuloplasty',
+  'CTO'
+];
 
+function abbr(proc) {
+  switch (proc) {
+  case procedures[0]:
+    return procedures[0];
+  case procedures[1]:
+    return 'PTCA';
+  case procedures[2]:
+    return 'PM impl.';
+  case procedures[3]:
+    return 'PM resynch.';
+  case procedures[4]:
+    return 'RF';
+  case procedures[5]:
+    return procedures[5];
+  case procedures[6]:
+    return 'Val';
+  default: return procedures[7];
+  }
+}
 
 class OperationForm extends React.Component {
   constructor(props) {
@@ -26,7 +51,8 @@ class OperationForm extends React.Component {
       shield: false,
       cabin: false,
       startDate: moment(),
-      endDate: moment()
+      endDate: moment(),
+      quantity: 1
     };
   }
 
@@ -37,17 +63,18 @@ class OperationForm extends React.Component {
           <div className="row">
             <div className="col-sm-3">
               <div className="row justify-content-center">
-                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Procedure</label>
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
+                  Procedure
+                </label>
               </div>
-
               <div className="row justify-content-center">
                 <div className="equip-proc" role="group">
-                  <select className="form-control" id="exampleSelect1" ref={d => (this.procedure = d)}>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
+                  <select
+                    className="form-control" id="exampleSelect1"
+                    value={this.state.procedure}
+                    onChange={e => (this.setState({ procedure: e.target.value }))}
+                  >
+                    { procedures.map(proc => <option key={proc}>{ proc }</option>) }
                   </select>
                 </div>
               </div>
@@ -55,40 +82,49 @@ class OperationForm extends React.Component {
 
             <div className="col-sm-3">
               <div className="row justify-content-center">
-                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Equipment</label>
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
+                  Equipment
+                </label>
               </div>
               <div className="row">
                 <div className="equip-proc">
-                  <select className="form-control" id="exampleSelect1" ref={d => (this.equipment = d)}>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
+                  <select
+                    className="form-control" id="exampleSelect1"
+                    value={this.state.equipment}
+                    onChange={e => (this.setState({ equipment: e.target.value }))}
+                  >
+                    <option>BiPlane</option>
+                    <option>Carm</option>
+                    <option>NotRot</option>
                   </select>
                 </div>
               </div>
             </div>
-            <div className="col-sm-3">
+            <div className="col-sm-2">
               <div className="row justify-content-center">
-                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Protection</label>
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
+                  Protection
+                </label>
               </div>
               <div className="row">
                 <div className="protection btn-group-sm">
                   <button
-                    type="button" className="btn btn-success" style={{ opacity: this.state.glasses ? 1 : 0.5 }}
+                    type="button" className="btn btn-success"
+                    style={{ opacity: this.state.glasses ? 1 : 0.5 }}
                     onClick={() => (this.setState({ glasses: !this.state.glasses }))}
                   >
                     glasses
                   </button>
                   <button
-                    type="button" className="btn btn-warning" style={{ opacity: this.state.cabin ? 1 : 0.5 }}
+                    type="button" className="btn btn-warning"
+                    style={{ opacity: this.state.cabin ? 1 : 0.5 }}
                     onClick={() => (this.setState({ cabin: !this.state.cabin }))}
                   >
                     Cabin
                   </button>
                   <button
-                    type="button" className="btn btn-primary" style={{ opacity: this.state.shield ? 1 : 0.5 }}
+                    type="button" className="btn btn-primary"
+                    style={{ opacity: this.state.shield ? 1 : 0.5 }}
                     onClick={() => (this.setState({ shield: !this.state.shield }))}
                   >
                     Shield
@@ -98,7 +134,9 @@ class OperationForm extends React.Component {
             </div>
             <div className="col-sm-3">
               <div className="row justify-content-center">
-                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">Protection</label>
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
+                TimeRange
+              </label>
               </div>
               <div className="row">
                 <div className="datepicker btn-group-vertical btn-group-sm">
@@ -119,6 +157,20 @@ class OperationForm extends React.Component {
                 </div>
               </div>
             </div>
+
+            <div className="col-sm-1">
+              <div className="row justify-content-center">
+                <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
+                  Quantity
+                </label>
+              </div>
+              <div className="row justify-content-center">
+                <input
+                  type="number" className="form-control" min="1" placeholder="1"
+                  onChange={e => this.setState({ quantity: parseInt(e.target.value, 10) })}
+                />
+              </div>
+            </div>
           </div>
         </div>
         <div className="form-group">
@@ -136,36 +188,67 @@ class OperationForm extends React.Component {
     );
   }
 }
+
+OperationForm.propTypes = {
+  addOperation: PropTypes.func
+};
+
 const Operation = ({ data, remove }) => (
-  <tr onClick={() => { remove(todo.id); }}>
-    <th scope="row">{data.id}</th>
-    <td>{ data.procedure }</td>
+  <tr >
+    <th scope="row">{data.quantity}</th>
+    <td>{abbr(data.procedure)}</td>
     <td>{ data.equipment }</td>
     <td>
-      <div className="">{data.startDate.format('DD-MM-YYYY')}</div>
-      <div className="">{data.startDate.format('DD-MM-YYYY')}</div>
+      <div className="">{data.startDate.format('DD-MM-YY')}</div>
+      <div className="">{data.endDate.format('DD-MM-YY')}</div>
     </td>
-    <td> { data.glasses } </td>
-    <td> <button type="button" className="btn btn-sm btn-danger img-circle">x</button> </td>
+    <td>
+      <div className="btn-group-sm btn-group-vertical">
+        { data.glasses
+          && <button type="button" className="btn btn-success btn-sm" > glasses </button>
+        }
+        {
+          data.cabin
+            && <button type="button" className="btn btn-warning btn-sm" > Cabin </button>
+        }
+        { data.shield &&
+        <button type="button" className="btn btn-primary btn-sm" > Shield </button>
+        }
+        { !data.glasses && !data.shield && !data.cabin && <p><strong>No </strong></p> }
+      </div>
+    </td>
+    <td>
+      <button
+        type="button" className="btn btn-sm btn-danger img-circle"
+        onClick={() => { remove(data.id); }}
+      >
+      x
+    </button>
+    </td>
   </tr>
 );
 
+Operation.propTypes = {
+  data: PropTypes.object,
+  remove: PropTypes.func
+};
+
 const OperationList = ({ operations, remove }) => {
   // Map through the operations
-  console.log('Operations', operations);
   const opNodes = operations.map(op => (<Operation data={op} key={op.id} remove={remove} />));
   return (
     <div className="container" style={{ marginTop: '20px' }}>
       <div className="row">
 
         <ul className="list-group" />
-        <table className="table">
+        <table className="table table-sm table-bordered">
           <thead className="">
             <tr>
               <th>#</th>
-              <th>Procedure</th>
-              <th>Equipment</th>
-              <th>TimeRange</th>
+              <th>Proc.</th>
+              <th>Equip.</th>
+              <th>Time</th>
+              <th>Prot.</th>
             </tr>
           </thead>
           <tbody>
@@ -178,11 +261,18 @@ const OperationList = ({ operations, remove }) => {
   );
 };
 
+OperationList.propTypes = {
+  operations: PropTypes.array,
+  remove: PropTypes.func
+};
 
-export default class TodoApp extends React.Component {
+export default class ProcedureForm extends React.Component {
   constructor(props) {
     // Pass props to parent class
     super(props);
+    this.addOperation = this.addOperation.bind(this);
+    this.handleRemove = this.handleRemove.bind(this);
+    this.generateData = this.generateData.bind(this);
     // Set initial state
     this.state = {
       data: []
@@ -200,28 +290,63 @@ export default class TodoApp extends React.Component {
   // Handle remove
   handleRemove(id) {
     // Filter all operations except the one to be removed
-    const remainder = this.state.data.filter((todo) => {
-      if (todo.id !== id) return todo;
-    });
+    const remainder = this.state.data.filter(proc => ((proc.id !== id) ? proc : null));
     // Update state with filter
     this.setState({ data: remainder });
   }
 
+  generateData() {
+    const data = this.state.data.reduce((acc, d) => {
+      const entries = [];
+      while (entries.length < d.quantity) {
+        const minDate = d3.timeDay.offset(d.startDate.toDate(), -1);
+        const dayRange = d3.timeDay.range(minDate, d.endDate.toDate());
+        entries.push(...dayRange.reduce((acc2, date, i) => {
+          const dateTimeStr = formatTime(new Date(date));
+          if (i < d.quantity) {
+            const entry = {
+              date: dateTimeStr,
+              equipment: d.equipment,
+              protSel: { shield: d.shield, glasses: d.glasses, cabin: d.cabin },
+              procedure: d.procedure
+            };
+            return acc2.concat([entry]);
+          }
+          return acc2;
+        }, []));
+      }
+      return acc.concat(entries);
+    }, []);
+    console.log('data', data);
+    this.props.dataChangeHandler(data);
+  }
+
   render() {
-    console.log('render', this.state);
     return (
       <div>
-        <OperationForm addOperation={this.addOperation.bind(this)} />
-        <OperationList
-          operations={this.state.data}
-          remove={this.handleRemove.bind(this)}
-        />
+        <div className="modal-body">
+          <OperationForm addOperation={this.addOperation} />
+          <OperationList
+            operations={this.state.data}
+            remove={this.handleRemove}
+          />
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button
+            type="button"
+            className={`btn btn-primary ${this.state.data.length === 0 && 'disabled'}`}
+            onClick={this.generateData}
+          >
+            Save changes
+          </button>
+        </div>
       </div>
     );
   }
 }
 
-
-// Contaner Component
-// Todo Id
-window.id = 0;
+ProcedureForm.propTypes = {
+  dataChangeHandler: PropTypes.func
+};

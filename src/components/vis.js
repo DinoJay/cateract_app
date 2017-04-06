@@ -276,10 +276,10 @@ function _update() {
           .range([0, w > 0 ? w : 3]);
           // .clamp(true);
 
-        d.y = self.yDate(d.data.date) + arrowSize(intervalKey) / 2;
+        d.y = self.yDate(d.data.date) + (arrowSize(intervalKey) / 2);
         d.x = barWidth(d[0]);
         d.width = barWidth(d[1]) - barWidth(d[0]);
-        d.height = barHeight(d.data.date) - arrowSize(intervalKey) * 3 / 2;
+        d.height = d3.max([4, barHeight(d.data.date) - (arrowSize(intervalKey) * (3 / 2))]);
       });
     });
 
@@ -468,9 +468,9 @@ function _update() {
 
     nestedData.forEach((d) => {
       d.x = radBarWidth(d.sumRadiation);
-      d.y = self.yDate(d.date) + arrowSize(intervalKey) / 2;
+      d.y = self.yDate(d.date) + (arrowSize(intervalKey) / 2);
       d.width = radBarWidth(0) - radBarWidth(d.sumRadiation);
-      d.height = barHeight(d.date) - arrowSize(intervalKey) * 3 / 2;
+      d.height = d3.max([4, barHeight(d.date) - (arrowSize(intervalKey) * (3 / 2))]);
     });
 
     const radBarEnter = radBar.enter()
@@ -777,6 +777,7 @@ function create() {
 
   (function createBrush() {
     const [startDate, endDate] = d3.extent(data, d => d.date);
+    console.log('startDate', startDate, 'endDate', endDate);
 
     const offset = 30;
     const yDate = d3.scaleTime()

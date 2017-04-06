@@ -173,6 +173,7 @@ class Visualization extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.data.length !== prevProps.data.length) {
+      console.log('reset', 'oldData', prevProps.data, 'newData', this.props.data);
       VisObj.setState({ data: filterData(this.props.data, this.props) });
       VisObj.reset();
     } else {
