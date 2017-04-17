@@ -149,6 +149,8 @@ function arrowLine(width, totalHeight, arrH) {
 }
 
 function linkSeg(l) {
+  console.log('l', l);
+  if (l.source === undefined || l.target === undefined) return null;
   const points = [
                 [l.source.x, l.source.y + l.source.height],
                 [l.source.x, l.source.y],
@@ -188,7 +190,8 @@ function prevInterval(intervalKey) {
 function _update() {
   const self = this;
 
-  const startDate = d3.min(self.data, d => d.date);
+  console.log('yDate', self.yDate);
+  if (self.yDate === undefined) return;
 
   const {
     intervalKey,
@@ -595,6 +598,7 @@ function create() {
   //     .attr('stop-color', d => d);
 //
 
+  console.log('Outermargin', outerMargin);
   const cont = svg
     .append('g')
     .attr('class', 'cont')
@@ -776,12 +780,21 @@ function create() {
     .attr('class', 'date-axis');
 
   (function createBrush() {
-    const [startDate, endDate] = d3.extent(data, d => d.date);
+    let startDate;
+    let endDate;
+    if (data.length > 1) {
+      const ext = d3.extent(data, d => d.date);
+      startDate = ext[0];
+      endDate = ext[1];
+    } else {
+      startDate = new Date();
+      endDate = d3.timeMonth.offset(new Date(), 1);
+    }
     console.log('startDate', startDate, 'endDate', endDate);
 
     const offset = 30;
     const yDate = d3.scaleTime()
-    // .domain([d3.timeMonth.floor(startDate), d3.timeMonth.offset(endDate, 1)])
+    .domain([d3.timeMonth.floor(startDate), d3.timeMonth.offset(endDate, 1)])
     // TODO: fix offset bug
     .range([0, subHeight - offset]);
 

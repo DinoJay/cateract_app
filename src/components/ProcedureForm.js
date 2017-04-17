@@ -39,6 +39,27 @@ function abbr(proc) {
   }
 }
 
+
+const DateButton = ({ onClick, value }) => (
+  <button
+    className="btn btn-secondary"
+    onClick={onClick}
+  >
+    {value}
+  </button>
+);
+
+DateButton.propTypes = {
+  onClick: PropTypes.func,
+  value: PropTypes.string
+};
+
+  // propTypes: {
+  //   onClick: React.PropTypes.func,
+  //   value: React.PropTypes.string
+  // },
+
+
 class OperationForm extends React.Component {
   constructor(props) {
     // Pass props to parent class
@@ -58,7 +79,7 @@ class OperationForm extends React.Component {
 
   render() {
     return (
-      <form className="container">
+      <div className="container">
         <div className="form-group">
           <div className="row">
             <div className="col-sm-3">
@@ -109,22 +130,22 @@ class OperationForm extends React.Component {
               <div className="row">
                 <div className="protection btn-group-sm">
                   <button
-                    type="button" className="btn btn-success"
-                    style={{ opacity: this.state.glasses ? 1 : 0.5 }}
+                    type="button"
+                    className={`btn ${this.state.glasses ? 'btn-success' : 'btn-outline-success'}`}
                     onClick={() => (this.setState({ glasses: !this.state.glasses }))}
                   >
                     glasses
                   </button>
                   <button
-                    type="button" className="btn btn-warning"
-                    style={{ opacity: this.state.cabin ? 1 : 0.5 }}
+                    type="button"
+                    className={`btn ${this.state.cabin ? 'btn-warning' : 'btn-outline-warning'}`}
                     onClick={() => (this.setState({ cabin: !this.state.cabin }))}
                   >
                     Cabin
                   </button>
                   <button
-                    type="button" className="btn btn-primary"
-                    style={{ opacity: this.state.shield ? 1 : 0.5 }}
+                    type="button"
+                    className={`btn ${this.state.shield ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => (this.setState({ shield: !this.state.shield }))}
                   >
                     Shield
@@ -135,25 +156,26 @@ class OperationForm extends React.Component {
             <div className="col-sm-3">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
-                TimeRange
+                Start / End Date
               </label>
               </div>
               <div className="row">
                 <div className="datepicker btn-group-vertical btn-group-sm">
-                  <button id="timerange" type="button" className="btn btn-secondary">
-                    <DatePicker
-                      ref={d => (this.startDate = d)}
-                      selected={this.state.startDate}
-                      onChange={d => this.setState({ startDate: d })}
-                    />
-                  </button>
-                  <button type="button" className="btn btn-secondary">
-                    <DatePicker
-                      ref={d => (this.endDate = d)}
-                      selected={this.state.endDate}
-                      onChange={d => this.setState({ endDate: d })}
-                    />
-                  </button>
+                  <DatePicker
+                    customInput={<DateButton />}
+                    selected={this.state.startDate}
+                    selectsStart startDate={this.state.startDate}
+                    endDate={this.state.endDate}
+                    onChange={d => this.setState({ startDate: d })}
+                    className="btn btn-secondary"
+                  />
+                  <DatePicker
+                    customInput={<DateButton />}
+                    selected={this.state.endDate}
+                    onChange={d => this.setState({ endDate: d })}
+                    selectsEnd startDate={this.state.startDate}
+                    endDate={this.state.endDate}
+                  />
                 </div>
               </div>
             </div>
@@ -184,7 +206,7 @@ class OperationForm extends React.Component {
       </button>
 
         </div>
-      </form>
+      </div>
     );
   }
 }
@@ -318,6 +340,7 @@ export default class ProcedureForm extends React.Component {
       return acc.concat(entries);
     }, []);
     console.log('data', data);
+    this.setState({ data: [] });
     this.props.dataChangeHandler(data);
   }
 
@@ -333,10 +356,11 @@ export default class ProcedureForm extends React.Component {
         </div>
 
         <div className="modal-footer">
-          <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
           <button
             type="button"
             className={`btn btn-primary ${this.state.data.length === 0 && 'disabled'}`}
+            data-dismiss="modal"
+            aria-label="Close"
             onClick={this.generateData}
           >
             Save changes

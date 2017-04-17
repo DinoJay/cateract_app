@@ -2,8 +2,10 @@ import * as d3 from 'd3';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
+// import { introJs } from 'intro.js';
 
 import 'cordova';
+// import 'intro.js/introjs.css';
 // import 'cordova_plugins';
 
 import './global_styles/app.scss';
@@ -26,8 +28,9 @@ class App extends React.Component {
   constructor(props) {
     // Pass props to parent class
     super(props);
-    this.clickHandler = this.clickHandler.bind(this);
-    this.dataChangeHandler = this.dataChangeHandler.bind(this);
+    this.selectionHandler = this._selectionHandler.bind(this);
+    this.dataChangeHandler = this._dataChangeHandler.bind(this);
+    this.dataWipeHandler = this._dataWipeHandler.bind(this);
     // Set initial state
     this.state = {
       data: [],
@@ -38,54 +41,25 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    console.log('didMount APP', this);
-
-    const brushHandleSize = 40;
-    const brushHeight = 50;
-    const brushMargin = 65;
-    const legendHeight = 35;
-    const legendMargin = 10;
-    const outerMargin = { top: 20, right: 0, bottom: 0, left: 0 };
-    const innerMargin = {
-      top: brushHeight + brushMargin + legendHeight + legendMargin,
-      right: 0,
-      bottom: 0,
-      left: 0
-    };
-    const offsetX = 30;
-    const offsetY = 50;
-    const width = window.innerWidth - outerMargin.left - outerMargin.right - offsetX;
-    const height = window.innerHeight - outerMargin.top - outerMargin.bottom - innerMargin.top;
-    const subHeight = height - innerMargin.top - innerMargin.bottom;
-    const centerWidth = 50;
-
-    const dim = {
-      width,
-      height,
-      subHeight,
-      centerWidth,
-      innerMargin,
-      brushHandleSize,
-      brushHeight,
-      brushMargin,
-      legendHeight,
-      legendMargin,
-      outerMargin
-    };
-
-    const stringData = localStorage.getItem('9');
+    const stringData = localStorage.getItem('dataHHH');
     if (stringData !== null) {
       const rawData = JSON.parse(stringData);
-      console.log('rawData', rawData);
       const newData = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
+
+      if (newData.length === 0) {
+        $(() => {
+          $('[data-toggle="tooltip"]').tooltip();
+        });
+        $('.tooltip-holder').tooltip('toggle');
+        console.log('first-try');
+      }
       this.setState({ data: _.cloneDeep(newData) });
     } else {
-      d3.json('testData.json', (error, rawData) => {
-        const data = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
-        localStorage.setItem('9', JSON.stringify(rawData));
-        this.setState({ data: _.cloneDeep(data) });
-      });
+      localStorage.setItem('dataHHH', JSON.stringify([]));
+      this.setState({ data: _.cloneDeep([]) });
     }
+  }
+
     // localStorage.setItem('6', JSON.stringify(ArrayData));
 
     // NativeStorage.getItem('5', (rawData) => {
@@ -100,22 +74,32 @@ class App extends React.Component {
     //     }, err => console.log('err'));
     //   });
     // });
-  }
 
-  clickHandler({ leftEye, rightEye, aggrSel }) {
+  _selectionHandler({ leftEye, rightEye, aggrSel }) {
     this.setState({ leftEye, rightEye, aggrSel });
   }
 
-  dataChangeHandler(newData) {
-    const rawData = JSON.parse(localStorage.getItem('9'));
-    localStorage.setItem('9', JSON.stringify(rawData.concat(newData)));
-    this.setState({ data: this.state.data.concat(newData.map(preprocess)).sort((a, b) => a.date - b.date) });
+  _dataChangeHandler(newData) {
+    const rawData = JSON.parse(localStorage.getItem('dataHHH'));
+    localStorage.setItem('dataHHH', JSON.stringify(rawData.concat(newData)));
+    this.setState({ data: this.state.data.concat(newData.map(preprocess))
+      .sort((a, b) => a.date - b.date) });
+  }
+
+  _dataWipeHandler() {
+    localStorage.setItem('dataHHH', JSON.stringify([]));
+    this.setState({ data: [] });
   }
 //
   render() {
     return (
       <div>
-        <Collapsible {...this.state} dataChangeHandler={this.dataChangeHandler} clickHandler={this.clickHandler} />
+        <Collapsible
+          {...this.state}
+          dataWipeHandler={this.dataWipeHandler}
+          dataChangeHandler={this.dataChangeHandler}
+          selectionHandler={this.selectionHandler}
+        />
         <Visualization {...this.state} />
       </div>
     );

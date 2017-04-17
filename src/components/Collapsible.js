@@ -6,6 +6,7 @@ export default class Collapsible extends React.Component {
     // Pass props to parent class
     super(props);
     this.state = props;
+    this.confirmWipeData = this._confirmWipeData.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -20,8 +21,14 @@ export default class Collapsible extends React.Component {
     };
 
     if (!newState.leftEye && !newState.rightEye) return;
-    this.props.configHandler(newState);
+    this.props.selectionHandler(newState);
     this.setState(newState);
+  }
+
+  _confirmWipeData() {
+    if (confirm('Are you sure that you want to wipe all your past procedure data?') === true) {
+      this.props.dataWipeHandler();
+    }
   }
 
   render() {
@@ -29,14 +36,23 @@ export default class Collapsible extends React.Component {
       <div className="container">
         <div >
           <nav className="navbar navbar-light bg-faded" >
-            <button
-              className="navbar-toggler navbar-toggler-right" type="button"
-              data-toggle="collapse" data-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent" aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon" />
-            </button>
+            <span>
+              <button
+                className="navbar-toggler navbar-toggler-right"
+                type="button"
+                data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation"
+                onClick={() => $('.tooltip-holder').tooltip('dispose')}
+              >
+                <span
+                  data-toggle="tooltip"
+                  data-placement="left"
+                  title="context menu"
+                  className="navbar-toggler-icon tooltip-holder"
+                />
+              </button>
+            </span>
             <h3>EyeRad</h3>
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <div className="navbar-nav mr-auto">
@@ -59,7 +75,7 @@ export default class Collapsible extends React.Component {
                               rightEye: this.state.rightEye,
                               aggrSel: this.state.aggrSel
                             };
-                            this.props.configHandler(newState);
+                            this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
                           className="custom-control-input"
@@ -81,7 +97,7 @@ export default class Collapsible extends React.Component {
                             };
 
                             if (!newState.leftEye && !newState.rightEye) return;
-                            this.props.configHandler(newState);
+                            this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
                           className="custom-control-input"
@@ -118,10 +134,22 @@ export default class Collapsible extends React.Component {
                   </div>
                 </div>
                 <div>
-                  <div className="row">
-                    <button type="button" className="btn btn-primary" data-toggle="modal" data-target="#myModal">
-                    Enter Data
-                  </button>
+                  <hr className="my-3" />
+                  <div className="float-left">
+                    <button
+                      type="button" className="btn btn-primary" data-toggle="modal"
+                      data-target="#myModal"
+                    >
+                        Enter Data
+                      </button>
+                  </div>
+                  <div className="float-right">
+                    <button
+                      type="button" className="btn btn-danger"
+                      onClick={this.confirmWipeData}
+                    >
+                        Wipe all data
+                      </button>
                   </div>
                 </div>
               </div>
@@ -136,7 +164,7 @@ export default class Collapsible extends React.Component {
                 <div className="modal-header">
                   <h5 className="modal-title" id="exampleModalLabel">Add Procedures</h5>
                   <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">x</span>
                   </button>
                 </div>
                 <ProcedureForm {...this.props} />
@@ -151,5 +179,6 @@ export default class Collapsible extends React.Component {
 }
 
 Collapsible.propTypes = {
-  configHandler: PropTypes.func
+  selectionHandler: PropTypes.func,
+  dataWipeHandler: PropTypes.func
 };

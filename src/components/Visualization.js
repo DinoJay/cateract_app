@@ -121,10 +121,8 @@ class Visualization extends React.Component {
       bottom: 0,
       left: 0
     };
-    const offsetX = 0;
-    const offsetY = 0;
-    const width = window.innerWidth - outerMargin.left - outerMargin.right - offsetX;
-    const height = window.innerHeight - outerMargin.top - outerMargin.bottom - offsetY;
+    const width = window.innerWidth - outerMargin.left - outerMargin.right;
+    const height = window.innerHeight - outerMargin.top - outerMargin.bottom;
     const subHeight = height - innerMargin.top - innerMargin.bottom;
     const centerWidth = 50;
 
@@ -179,7 +177,10 @@ class Visualization extends React.Component {
     } else {
       const fd = filterData(this.props.data, this.props);
       VisObj.setState({ data: fd });
-      VisObj.update();
+      console.log('fd', fd);
+      if (fd.length > 0) {
+        VisObj.update();
+      }
     }
   }
 
@@ -193,7 +194,14 @@ class Visualization extends React.Component {
 
   render() {
     return (
-      <div ref={c => (this.Vis = c)} />
+      <div className="container" ref={c => (this.Vis = c)} >
+        <div className="jumbotron">
+          <h2 className="display-3">Hello, User!</h2>
+          <p className="lead">It seems that you open the app for the first time. Let me help you a bit!</p>
+          <hr className="my-4" />
+          <p>Click the context menu above to add your first bunch of procedures you want to analyze according to your radiation dose!</p>
+        </div>
+      </div>
     );
   }
 }

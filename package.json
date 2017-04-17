@@ -19,6 +19,7 @@
     "bootstrap": "^4.0.0-alpha.6",
     "d3": "^4.4.0",
     "d3-symbol-extra": "^0.1.0",
+    "intro.js": "^2.5.0",
     "moment": "^2.18.1",
     "react": "15.4.1",
     "react-bootstrap-date-picker": "^5.0.1",
