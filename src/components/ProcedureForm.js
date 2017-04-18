@@ -131,21 +131,21 @@ class OperationForm extends React.Component {
                 <div className="protection btn-group-sm">
                   <button
                     type="button"
-                    className={`btn ${this.state.glasses ? 'btn-success' : 'btn-outline-success'}`}
+                    className={`btn ${this.state.glasses ? 'my-btn-success' : 'my-btn-outline-success'}`}
                     onClick={() => (this.setState({ glasses: !this.state.glasses }))}
                   >
                     glasses
                   </button>
                   <button
                     type="button"
-                    className={`btn ${this.state.cabin ? 'btn-warning' : 'btn-outline-warning'}`}
+                    className={`btn ${this.state.cabin ? 'my-btn-warning' : 'my-btn-outline-warning'}`}
                     onClick={() => (this.setState({ cabin: !this.state.cabin }))}
                   >
                     Cabin
                   </button>
                   <button
                     type="button"
-                    className={`btn ${this.state.shield ? 'btn-primary' : 'btn-outline-primary'}`}
+                    className={`btn ${this.state.shield ? 'my-btn-primary' : 'my-btn-outline-primary'}`}
                     onClick={() => (this.setState({ shield: !this.state.shield }))}
                   >
                     Shield

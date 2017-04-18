@@ -114,12 +114,12 @@ class Visualization extends React.Component {
     const brushMargin = 65;
     const legendHeight = 35;
     const legendMargin = 10;
-    const outerMargin = { top: 0, right: 0, bottom: 0, left: 0 };
+    const outerMargin = { top: 0, right: 0, bottom: 0, left: 5 };
     const innerMargin = {
       top: brushHeight + brushMargin + legendHeight + legendMargin,
-      right: 0,
+      right: 10,
       bottom: 0,
-      left: 0
+      left: 10
     };
     const width = window.innerWidth - outerMargin.left - outerMargin.right;
     const height = window.innerHeight - outerMargin.top - outerMargin.bottom;
@@ -176,9 +176,9 @@ class Visualization extends React.Component {
       VisObj.reset();
     } else {
       const fd = filterData(this.props.data, this.props);
-      VisObj.setState({ data: fd });
       console.log('fd', fd);
       if (fd.length > 0) {
+        VisObj.setState({ data: fd });
         VisObj.update();
       }
     }
@@ -194,12 +194,12 @@ class Visualization extends React.Component {
 
   render() {
     return (
-      <div className="container" ref={c => (this.Vis = c)} >
+      <div ref={c => (this.Vis = c)} >
         <div className="jumbotron">
           <h2 className="display-3">Hello, User!</h2>
           <p className="lead">It seems that you open the app for the first time. Let me help you a bit!</p>
           <hr className="my-4" />
-          <p>Click the context menu above to add your first bunch of procedures you want to analyze according to your radiation dose!</p>
+          <p>Click the <mark>context menu</mark> above to add your first bunch of procedures you want to analyze according to your radiation dose!</p>
         </div>
       </div>
     );

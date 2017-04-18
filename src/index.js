@@ -45,7 +45,7 @@ class App extends React.Component {
     if (stringData !== null) {
       const rawData = JSON.parse(stringData);
       const newData = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
-
+      this.setState({ data: _.cloneDeep(newData) });
       if (newData.length === 0) {
         $(() => {
           $('[data-toggle="tooltip"]').tooltip();
@@ -53,7 +53,12 @@ class App extends React.Component {
         $('.tooltip-holder').tooltip('toggle');
         console.log('first-try');
       }
-      this.setState({ data: _.cloneDeep(newData) });
+
+      // d3.json('testData.json', (error, rawData) => {
+        // console.log('init', rawData);
+      // localStorage.setItem('dataHHH', JSON.stringify(rawData));
+      // this.setState({ data: _.cloneDeep(newData) });
+      // });
     } else {
       localStorage.setItem('dataHHH', JSON.stringify([]));
       this.setState({ data: _.cloneDeep([]) });
@@ -65,14 +70,6 @@ class App extends React.Component {
     // NativeStorage.getItem('5', (rawData) => {
     //   console.log('data exists', rawData);
     // }, () => {
-    //   d3.json('testData.json', (error, rawData) => {
-    //     console.log('init', rawData);
-    //     if (error) throw error;
-    //     NativeStorage.setItem('5', rawData, () => {
-    //       const data = rawData.map(preprocess).sort((a, b) => a.date - b.date);
-    //       this.setState({ data: _.cloneDeep(data) });
-    //     }, err => console.log('err'));
-    //   });
     // });
 
   _selectionHandler({ leftEye, rightEye, aggrSel }) {
