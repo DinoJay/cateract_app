@@ -166,15 +166,17 @@ class OperationForm extends React.Component {
                     selected={this.state.startDate}
                     selectsStart startDate={this.state.startDate}
                     endDate={this.state.endDate}
-                    onChange={d => this.setState({ startDate: d })}
+                    onChange={d => d.isSameOrBefore(this.state.endDate) && this.setState({ startDate: d })}
+                    dateFormat="DD/MM/YYYY"
                     className="btn btn-secondary"
                   />
                   <DatePicker
                     customInput={<DateButton />}
                     selected={this.state.endDate}
-                    onChange={d => this.setState({ endDate: d })}
+                    onChange={d => d.isSameOrAfter(this.state.startDate) && this.setState({ endDate: d })}
                     selectsEnd startDate={this.state.startDate}
                     endDate={this.state.endDate}
+                    dateFormat="DD/MM/YYYY"
                   />
                 </div>
               </div>

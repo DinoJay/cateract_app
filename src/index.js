@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
+import $ from 'jquery';
 // import { introJs } from 'intro.js';
 
 import 'cordova';
@@ -32,36 +33,32 @@ class App extends React.Component {
     this.dataChangeHandler = this._dataChangeHandler.bind(this);
     this.dataWipeHandler = this._dataWipeHandler.bind(this);
     // Set initial state
+    const stringData = localStorage.getItem('dataHHH');
+    console.log('stringData', stringData);
+    let data = [];
+    if (stringData !== null) {
+      const rawData = JSON.parse(stringData);
+      const newData = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
+      data = _.cloneDeep(newData);
+    } else {
+      localStorage.setItem('dataHHH', JSON.stringify([]));
+    }
     this.state = {
-      data: [],
+      data,
       leftEye: true,
       rightEye: false,
-      aggrSel: false
+      aggrSel: false,
+      threshhold: 0.4
     };
   }
 
   componentDidMount() {
-    const stringData = localStorage.getItem('dataHHH');
-    if (stringData !== null) {
-      const rawData = JSON.parse(stringData);
-      const newData = _.cloneDeep(rawData).map(preprocess).sort((a, b) => a.date - b.date);
-      this.setState({ data: _.cloneDeep(newData) });
-      if (newData.length === 0) {
-        $(() => {
-          $('[data-toggle="tooltip"]').tooltip();
-        });
-        $('.tooltip-holder').tooltip('toggle');
-        console.log('first-try');
-      }
-
-      // d3.json('testData.json', (error, rawData) => {
-        // console.log('init', rawData);
-      // localStorage.setItem('dataHHH', JSON.stringify(rawData));
-      // this.setState({ data: _.cloneDeep(newData) });
-      // });
-    } else {
-      localStorage.setItem('dataHHH', JSON.stringify([]));
-      this.setState({ data: _.cloneDeep([]) });
+    if (this.state.data.length === 0) {
+      $(() => {
+        $('[data-toggle="tooltip"]').tooltip();
+      });
+      $('.tooltip-holder').tooltip('toggle');
+      console.log('first-try');
     }
   }
 
@@ -72,8 +69,9 @@ class App extends React.Component {
     // }, () => {
     // });
 
-  _selectionHandler({ leftEye, rightEye, aggrSel }) {
-    this.setState({ leftEye, rightEye, aggrSel });
+  _selectionHandler({ leftEye, rightEye, cumulated }) {
+    console.log('cumulated', cumulated);
+    this.setState({ leftEye, rightEye, cumulated });
   }
 
   _dataChangeHandler(newData) {
@@ -87,10 +85,10 @@ class App extends React.Component {
     localStorage.setItem('dataHHH', JSON.stringify([]));
     this.setState({ data: [] });
   }
-//
+// TODO: change later!
   render() {
     return (
-      <div>
+      <div style={{ maxWidth: '400px' }}>
         <Collapsible
           {...this.state}
           dataWipeHandler={this.dataWipeHandler}

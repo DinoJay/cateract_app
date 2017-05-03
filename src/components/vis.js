@@ -1,5 +1,7 @@
 import * as d3 from 'd3';
 
+let CUMULATED = false;
+
 const keys = ['shield', 'glasses', 'cabin'];
 
 const delay = 900;
@@ -98,22 +100,39 @@ function d3TimeSwitch(yDate) {
 
 const formatTime = d3.timeFormat('%Y/%m/%d %H:%M ');
 
-function aggregate(data, timeInterval, intervalKey, [st, et]) {
+function aggregate(data, timeInterval, intervalKey, st, cumulated = false) {
+  // TODO: HACK
+  const sumRad = ({ acc, sum }, e) => {
+    const newSum = sum + e.sumRadiation;
+    e.sumRadiation = newSum;
+    return { sum: newSum, acc: acc.concat([e]) };
+  };
+
   if (intervalKey === 'hours') {
-    return data.filter(d => (d.date.getTime() === st.getTime())).map((d) => {
+    const hourData = data.filter(d => (d.date.getTime() === st.getTime())).map((d) => {
       d.sumRadiation = d.radiation;
       d.values = [d];
       return d;
     });
+    if (cumulated) {
+      return hourData.reduce(sumRad, { acc: [], sum: 0 }).acc;
+    }
+    return hourData;
   }
-  return d3.nest()
+  const aggrData = d3.nest()
     .key(d => formatTime(timeInterval(d.date)))
     .entries(data)
     .map((e) => {
       e.date = new Date(e.key);
-      e.sumRadiation = d3.max(e.values, a => a.radiation);
+      e.sumRadiation = d3.sum(e.values, a => a.radiation);
       return e;
     });
+
+  if (cumulated) {
+    return aggrData.reduce(sumRad, { acc: [], sum: 0 }).acc;
+  }
+
+  return aggrData;
 }
 
 
@@ -199,7 +218,7 @@ function prevInterval(intervalKey) {
 //   }
 // }
 
-function _update(hypo = false) {
+function _update(hypo = false, cumulated = false) {
   const self = this;
 
   if (self.yDate === undefined) return;
@@ -213,13 +232,18 @@ function _update(hypo = false) {
   // yDate.domain([tickInterval.floor(startDate), tickInterval.offset(endDate, 1)]);
 
 
-  const nestedData = aggregate(self.data, nestInterval, intervalKey, self.yDate.domain());
-  console.log('nested data', nestedData);
+  const [startDate, endDate] = self.yDate.domain();
+  console.log('startDate', startDate, 'endDate', endDate);
+  const nestedData = aggregate(self.data, nestInterval, intervalKey, startDate, cumulated);
 
-  const newMaxRad = d3.max(nestedData, d => d.sumRadiation);
+  // TODO: hack
+  const newMaxRad = d3.max(nestedData
+    .filter(d => (d.date > d3.timeDay.offset(startDate, -2) && d.date < endDate)),
+    d => d.sumRadiation);
+
   self.maxRad = !hypo && newMaxRad > 0 ? newMaxRad : self.maxRad;
+  console.log('self.maxRad', self.maxRad);
 
-  // const [startDate, endDate] = yDate.domain();
   // const barHeight = self.yDate(startDate) - self.yDate(nestInterval.offset(startDate, -1));
   // const symbols = d3.scaleOrdinal()
   //   .range(extraSymbols);
@@ -228,15 +252,15 @@ function _update(hypo = false) {
           .rangeRound([(self.dim.width / 2) - (self.dim.centerWidth / 2), 0])
           .domain([0, self.maxRad]);
 
-
   const thresholdLine = d3.select('.rad-legend').selectAll('#thresholdLine')
     .data([self.threshhold]);
 
   const threshholdLineEnter = thresholdLine.enter()
     .append('line')
         .attr('id', 'thresholdLine')
-        .style('stroke', 'black')
-        .style('stroke-dasharray', 2.5);
+        .style('stroke-width', 2.5)
+        .attr('stroke', 'green')
+        .style('stroke-dasharray', 7.5);
 
 
   thresholdLine.merge(threshholdLineEnter)
@@ -260,7 +284,6 @@ function _update(hypo = false) {
       .transition()
       .duration(delay)
       .call(radAxis);
-
 
     d3.select('.rad-axis').selectAll('.tick text')
       .attr('font-size', 12)
@@ -295,7 +318,7 @@ function _update(hypo = false) {
           .domain([0, 1])
 
           // .range([0, w > 0 ? w : 3]);
-          .rangeRound([0, self.dim.width / 2]);
+          .rangeRound([0, (self.dim.width / 2) - (self.dim.centerWidth / 2)]);
           // .clamp(true);
 
         d.y = intervalKey === 'hours' ? y(i) : self.yDate(d.data.date) + (arrowSize(intervalKey) / 2);
@@ -430,6 +453,7 @@ function _update(hypo = false) {
         .tspans(d => wordwrap(timeFormat(d.date), 3))
         .attr('alignment-baseline', 'hanging');
 
+      console.log('cumulated Arg', cumulated);
       gEnter
         .append('path')
         .attr('fill', 'grey')
@@ -441,11 +465,13 @@ function _update(hypo = false) {
           const timeDomain = [tickInterval.floor(d.date),
             tickInterval.ceil(tickInterval.offset(d.date, 1))];
           // console.log('timeDomain', timeDomain);
+          // d3.select('.brush').property('cumulated', d3.select('#radio1').property('checked'));
+          CUMULATED = cumulated;
 
           d3.select('.context').select('.brush')
             .transition()
             .duration(100)
-            .call(self.brush.move, timeDomain.map(self.brushScale));
+            .call(self.brush.move, timeDomain.map(self.brushScale), 'ARG');
         });
 
       return gEnter;
@@ -556,7 +582,7 @@ function _update(hypo = false) {
 }
 
 
-function create() {
+function create(cumulated) {
   const el = d3.select(this.el);
   el.selectAll('*').remove();
   const {
@@ -700,7 +726,7 @@ function create() {
 
             const newData = self.callback(d, data);
             self.setState({ data: newData });
-            self.update(true);
+            self.update(true, cumulated);
           });
           // .text(d => d.key);
 
@@ -766,7 +792,7 @@ function create() {
       .attr('fill', '#000')
       .attr('font-size', 15)
       .attr('font-weight', 'bold')
-      .text('Radiation (mSv)');
+      .text('Eye lens dose (mSv)');
 
   // make quantized key legend items
     radLegend
@@ -838,7 +864,16 @@ function create() {
     context.append('g')
     .attr('class', 'axis axis--x')
     .attr('transform', `translate(0,${brushHeight})`)
-    .call(d3.axisBottom(brushScale).ticks(d3.timeMonth.every(1)));
+    .call(d3.axisBottom(brushScale)
+            .ticks(d3.timeMonth.every(1))
+            .tickFormat(d3.timeFormat('%b'))
+    );
+
+    context.selectAll('.axis text')  // select all the text elements for the xaxis
+          .attr('transform', function() {
+            return `translate(${this.getBBox().height * -1},${this.getBBox().height / 2})rotate(-45)`;
+          });
+
 
     const handle = gBrush.selectAll('.handle--custom')
     .data([{ type: 'w' }, { type: 'e' }])
@@ -866,7 +901,10 @@ function create() {
         .domain(d0);
 
       self.setState({ data, yDate, brush, brushScale });
-      self.update();
+      const radio = d3.select('#radio1').property('checked');// $('#radio1').hasClass('custom-control-indicator:checked');
+      console.log('RADIO', radio);
+      self.update(false, !radio);
+
 
       if (s == null) {
         handle.attr('display', 'none');
@@ -896,12 +934,12 @@ class Vis {
   }
 
 
-  reset() {
-    create.bind(this)();
+  reset(cumulated = false) {
+    create.bind(this)(cumulated);
   }
 
-  update(hypo) {
-    _update.bind(this)(hypo);
+  update(hypo, cumulated) {
+    _update.bind(this)(hypo, cumulated);
   }
 
   setState(state) {

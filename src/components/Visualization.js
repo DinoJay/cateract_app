@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import React from 'react';
+import React, { PropTypes } from 'react';
 
 import Vis from './vis';
 
@@ -16,12 +16,28 @@ const refData = rawRefData.map((d) => {
 });
 
 function getEntry(d, e, conf) {
-  const eye = conf.leftEye ? 'left' : 'right';
-  return (
-    d.eye === eye && d.equipment === e.equipment &&
+  if (conf.leftEye && conf.rightEye) {
+    return (
+    d.equipment === e.equipment &&
     d.procedure === e.procedure && d.shield === e.protSel.shield &&
     d.glasses === e.protSel.glasses && d.cabin === e.protSel.cabin
-  );
+    );
+  }
+  if (conf.leftEye) {
+    return (
+    d.eye === 'left' && d.equipment === e.equipment &&
+    d.procedure === e.procedure && d.shield === e.protSel.shield &&
+    d.glasses === e.protSel.glasses && d.cabin === e.protSel.cabin
+    );
+  }
+  if (conf.rightEye) {
+    return (
+    d.eye === 'right' && d.equipment === e.equipment &&
+    d.procedure === e.procedure && d.shield === e.protSel.shield &&
+    d.glasses === e.protSel.glasses && d.cabin === e.protSel.cabin
+    );
+  }
+  return false;
 }
 
 // const keys = ['shield', 'glasses', 'cabin'];
@@ -43,8 +59,10 @@ function lookUpProtection(e, conf) {
 
 function lookupRadiation(e, conf) {
   // TODO
-  const refEntry = refData.find(d => getEntry(d, e, conf));
-  return refEntry ? refEntry.radiation : 0;
+  const refEntries = refData.filter(d => getEntry(d, e, conf));
+  if (refEntries.length === 0) return 0;
+  if (refEntries.length === 1) return refEntries[0].radiation;
+  else return (refEntries[0].radiation + refEntries[1].radiation) / 2;
 }
 
 function filterData(data, config) {
@@ -58,14 +76,6 @@ function filterData(data, config) {
     return ret;
   }
 
-  const redData = data.reduce(({ acc, sum }, e) => {
-    const newSum = sum + lookupRadiation(e, config);
-    e.radiation = newSum;
-    e.protection = lookUpProtection(e, config);
-    return { sum: newSum, acc: acc.concat([e]) };
-  }, { acc: [], sum: 0 });
-  console.log('redData', redData);
-  return redData.acc;
   // if (config.aggrSel) {
   //   return ;
   // }
@@ -77,7 +87,6 @@ function filterData(data, config) {
 }
 
 function protClickCallback(prot, data) {
-  console.log('prot selected', prot.selected);
   const changedData = data.map((e) => {
     e.protSel[prot.key] = d3.scaleOrdinal()
        .domain([0, 0.5, 1])
@@ -121,8 +130,9 @@ class Visualization extends React.Component {
       bottom: 0,
       left: 10
     };
-    const width = window.innerWidth - outerMargin.left - outerMargin.right;
-    const height = window.innerHeight - outerMargin.top - outerMargin.bottom;
+      // TODO: change laterwindow.innerHeight
+    const width = 400 - outerMargin.left - outerMargin.right;
+    const height = 800 - outerMargin.top - outerMargin.bottom;
     const subHeight = height - innerMargin.top - innerMargin.bottom;
     const centerWidth = 50;
 
@@ -146,8 +156,11 @@ class Visualization extends React.Component {
       dim,
       data: filterData(this.props.data, this.props),
       callback: protClickCallback.bind(this),
-      threshhold: 0.02
+      threshhold: this.props.threshhold
     });
+
+    VisObj.setState({ data: filterData(this.props.data, this.props) });
+    VisObj.reset(this.props.cumulated);
 
     // VisObj.setState({
     //   data: filterData(this.props.data, this.props)
@@ -171,15 +184,13 @@ class Visualization extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.data.length !== prevProps.data.length) {
-      console.log('reset', 'oldData', prevProps.data, 'newData', this.props.data);
       VisObj.setState({ data: filterData(this.props.data, this.props) });
-      VisObj.reset();
+      VisObj.reset(this.props.cumulated);
     } else {
       const fd = filterData(this.props.data, this.props);
-      console.log('fd', fd);
       if (fd.length > 0) {
         VisObj.setState({ data: fd });
-        VisObj.update();
+        VisObj.update(false, this.props.cumulated);
       }
     }
   }
@@ -205,5 +216,15 @@ class Visualization extends React.Component {
     );
   }
 }
+Visualization.propTypes = {
+  threshhold: PropTypes.number,
+  cumulated: PropTypes.boolean
+};
+
+Visualization.defaultProps = {
+  threshhold: 0.3,
+  cumulated: false
+};
+
 
 export default Visualization;

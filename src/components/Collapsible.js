@@ -1,5 +1,57 @@
 import React, { PropTypes } from 'react';
+import { timeFormat } from 'd3';
+
+const formatTime = timeFormat('%d/%m/%Y');
+
+import Griddle, { ColumnDefinition, RowDefinition } from 'griddle-react';
 import ProcedureForm from './ProcedureForm';
+
+import { connect } from 'react-redux';
+
+const CustomRowComponent = connect((state, props) => ({ rowData: plugins.LocalPlugin.selectors.rowDataSelector(state, props) }))(({ rowData }) => (
+  <div
+    style={{
+      backgroundColor: '#EDEDED',
+      border: '1px solid #777',
+      padding: 5,
+      margin: 10
+    }}
+  >
+    <h1>{rowData.name}</h1>
+    <ul>
+      <li><strong>State</strong>: {rowData.state}</li>
+      <li><strong>Company</strong>: {rowData.company}</li>
+    </ul>
+  </div>
+  ));
+
+const dbg = (arg) => {
+  console.log('dbg', arg);
+  return arg;
+};
+
+const griddleStyle = {
+  classNames: {
+    Cell: 'griddle-cell',
+    Filter: 'griddle-filter',
+    Loading: 'griddle-loadingResults',
+    NextButton: 'griddle-next-button',
+    NoResults: 'griddle-noResults',
+    PageDropdown: 'griddle-page-select',
+    Pagination: 'griddle-pagination',
+    PreviousButton: 'griddle-previous-button',
+    Row: 'griddle-row',
+    RowDefinition: 'griddle-row-definition',
+    Settings: 'griddle-settings',
+    SettingsToggle: 'griddle-settings-toggle',
+    Table: 'table table-sm table-bordered',
+    TableBody: 'griddle-table-body',
+    TableHeading: 'griddle-table-heading',
+    TableHeadingCell: 'griddle-table-heading-cell',
+    TableHeadingCellAscending: 'griddle-heading-ascending',
+    TableHeadingCellDescending: 'griddle-heading-descending'
+  }
+};
 
 export default class Collapsible extends React.Component {
   constructor(props) {
@@ -17,7 +69,7 @@ export default class Collapsible extends React.Component {
     const newState = {
       leftEye: this.state.leftEye,
       rightEye: this.state.rightEye,
-      aggrSel: !this.state.aggrSel
+      cumulated: !this.state.cumulated
     };
 
     if (!newState.leftEye && !newState.rightEye) return;
@@ -32,6 +84,21 @@ export default class Collapsible extends React.Component {
   }
 
   render() {
+    const DateCol = ({ value }) => <span style={{ color: '#0000AA' }}>{dbg(formatTime(value))}</span>;
+    const ProtCol = (arg) => {
+      console.log('arg', arg);
+      return (<div className="btn-group-sm btn-group-vertical">
+        { glasses && <button type="button" className="btn btn-success btn-sm" > glasses </button>
+        }
+        {
+          cabin && <button type="button" className="btn btn-warning btn-sm" > Cabin </button>
+        }
+        { shield && <button type="button" className="btn btn-primary btn-sm" > Shield </button>
+        }
+        { !glasses && !shield && !cabin && <p><strong>No </strong></p> }
+      </div>);
+    };
+
     return (
       <div className="container">
         <div >
@@ -61,7 +128,7 @@ export default class Collapsible extends React.Component {
                     htmlFor="lgFormGroupInput"
                     className="col-sm-3 col-form-label col-form-label-lg"
                   >
-                  Selection
+                  Eye
                   </label >
                   <div className="col-sm-10">
                     <div className="form-check form-check-inline">
@@ -73,7 +140,7 @@ export default class Collapsible extends React.Component {
                             const newState = {
                               leftEye: !this.state.leftEye,
                               rightEye: this.state.rightEye,
-                              aggrSel: this.state.aggrSel
+                              cumulated: this.state.cumulated
                             };
                             this.props.selectionHandler(newState);
                             this.setState(newState);
@@ -93,7 +160,7 @@ export default class Collapsible extends React.Component {
                             const newState = {
                               leftEye: this.state.leftEye,
                               rightEye: !this.state.rightEye,
-                              aggrSel: this.state.aggrSel
+                              cumulated: this.state.cumulated
                             };
 
                             if (!newState.leftEye && !newState.rightEye) return;
@@ -110,46 +177,57 @@ export default class Collapsible extends React.Component {
                 </div>
                 <div className="row">
                   <label htmlFor="lgFormGroupInput" className="col-sm-4 col-form-label col-form-label-lg">
-                  View
+                  Display
                 </label >
                   <div className="col-sm-10">
                     <label className="custom-control custom-radio">
                       <input
                         onClick={this._onClickView.bind(this)}
-                        id="radio1" name="radio" type="radio" className="custom-control-input"
-                        checked={!this.state.aggrSel}
+                        id="radio1"
+                        name="radio" type="radio" className="custom-control-input"
+                        checked={!this.state.cumulated}
                       />
                       <span className="custom-control-indicator" />
-                      <span className="custom-control-description">Procedure</span>
+                      <span className="custom-control-description">Period</span>
                     </label>
                     <label className="custom-control custom-radio">
                       <input
                         onClick={this._onClickView.bind(this)}
                         id="radio2" name="radio" type="radio" className="custom-control-input"
-                        checked={this.state.aggrSel}
+                        checked={this.state.cumulated}
                       />
                       <span className="custom-control-indicator" />
-                      <span className="custom-control-description">Accumulation</span>
+                      <span className="custom-control-description">Total Cumulated</span>
                     </label>
                   </div>
                 </div>
-                <div>
+                <div className="row">
                   <hr className="my-3" />
-                  <div className="float-left">
-                    <button
-                      type="button" className="btn btn-primary" data-toggle="modal"
-                      data-target="#myModal"
-                    >
+                  <div >
+                    <div className="col">
+                      <button
+                        type="button" className="btn btn-primary" data-toggle="modal"
+                        data-target="#myModal"
+                      >
                         Enter Data
                       </button>
-                  </div>
-                  <div className="float-right">
-                    <button
-                      type="button" className="btn btn-danger"
-                      onClick={this.confirmWipeData}
-                    >
+                    </div>
+                    <div className="col">
+                      <button
+                        type="button" className="btn btn-primary" data-toggle="modal"
+                        data-target="#myModal2"
+                      >
+                        Vis Data
+                      </button>
+                    </div>
+                    <div className="col">
+                      <button
+                        type="button" className="btn btn-danger"
+                        onClick={this.confirmWipeData}
+                      >
                         Wipe all data
                       </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -168,6 +246,37 @@ export default class Collapsible extends React.Component {
                   </button>
                 </div>
                 <ProcedureForm {...this.props} />
+              </div>
+            </div>
+          </div>
+          <div
+            className="modal bd-example-modal-lg fade" id="myModal2" tabIndex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true"
+          >
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title" id="exampleModalLabel">Vis Data</h5>
+                  <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">x</span>
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <Griddle
+                    styleConfig={griddleStyle}
+                    data={this.props.data}
+                    components={{
+                      Row: d => <tr>test </tr>
+                    }}
+                  >
+                    <RowDefinition>
+                      <ColumnDefinition id="date" customComponent={DateCol} />
+                      <ColumnDefinition id="procedure" />
+                      <ColumnDefinition id="equipment" />
+                      <ColumnDefinition id="initProtSel" />
+                    </RowDefinition>
+                  </Griddle>
+                </div>
               </div>
             </div>
           </div>
