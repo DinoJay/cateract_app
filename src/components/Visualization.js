@@ -130,8 +130,8 @@ class Visualization extends React.Component {
       left: 10
     };
       // TODO: change laterwindow.innerHeight
-    const width = 400 - outerMargin.left - outerMargin.right;
-    const height = 800 - outerMargin.top - outerMargin.bottom;
+    const width = window.innerWidth - outerMargin.left - outerMargin.right;
+    const height = window.innerHeight - outerMargin.top - outerMargin.bottom;
     const subHeight = height - innerMargin.top - innerMargin.bottom;
     const centerWidth = 50;
 

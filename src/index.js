@@ -89,7 +89,7 @@ class App extends React.Component {
 // TODO: change later!
   render() {
     return (
-      <div style={{ maxWidth: '400px' }}>
+      <div>
         <Collapsible
           {...this.state}
           dataWipeHandler={this.dataWipeHandler}
