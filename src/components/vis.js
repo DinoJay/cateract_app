@@ -232,7 +232,8 @@ function _update(hypo = false, cumulated = false) {
   // yDate.domain([tickInterval.floor(startDate), tickInterval.offset(endDate, 1)]);
 
 
-  const [startDate, endDate] = self.yDate.domain();
+  const startDate = d3.timeDay.offset(self.yDate.domain()[0], -1);
+  const endDate = d3.timeDay.offset(self.yDate.domain()[1], 1);
   console.log('startDate', startDate, 'endDate', endDate);
   const nestedData = aggregate(self.data, nestInterval, intervalKey, startDate, cumulated);
 
@@ -901,9 +902,10 @@ function create(cumulated) {
         .domain(d0);
 
       self.setState({ data, yDate, brush, brushScale });
-      const radio = d3.select('#radio1').property('checked');// $('#radio1').hasClass('custom-control-indicator:checked');
+      const radio = d3.select('#radio1').property('checked');
       console.log('RADIO', radio);
       self.update(false, !radio);
+      self.timeChange(d0);
 
 
       if (s == null) {

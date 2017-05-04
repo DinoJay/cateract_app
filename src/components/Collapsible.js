@@ -1,29 +1,8 @@
 import React, { PropTypes } from 'react';
-import { timeFormat } from 'd3';
-
-const formatTime = timeFormat('%d/%m/%Y');
-
 import Griddle, { ColumnDefinition, RowDefinition } from 'griddle-react';
 import ProcedureForm from './ProcedureForm';
+import { Operation, TableHeading, Layout } from './Operation';
 
-import { connect } from 'react-redux';
-
-const CustomRowComponent = connect((state, props) => ({ rowData: plugins.LocalPlugin.selectors.rowDataSelector(state, props) }))(({ rowData }) => (
-  <div
-    style={{
-      backgroundColor: '#EDEDED',
-      border: '1px solid #777',
-      padding: 5,
-      margin: 10
-    }}
-  >
-    <h1>{rowData.name}</h1>
-    <ul>
-      <li><strong>State</strong>: {rowData.state}</li>
-      <li><strong>Company</strong>: {rowData.company}</li>
-    </ul>
-  </div>
-  ));
 
 const dbg = (arg) => {
   console.log('dbg', arg);
@@ -201,33 +180,33 @@ export default class Collapsible extends React.Component {
                     </label>
                   </div>
                 </div>
+
+                <hr className="my-3" />
+
                 <div className="row">
-                  <hr className="my-3" />
-                  <div >
-                    <div className="col">
-                      <button
-                        type="button" className="btn btn-primary" data-toggle="modal"
-                        data-target="#myModal"
-                      >
-                        Enter Data
+                  <div className="col">
+                    <button
+                      type="button" className="btn btn-success" data-toggle="modal"
+                      data-target="#myModal"
+                    >
+                        Enter Proc
                       </button>
-                    </div>
-                    <div className="col">
-                      <button
-                        type="button" className="btn btn-primary" data-toggle="modal"
-                        data-target="#myModal2"
-                      >
-                        Vis Data
+                  </div>
+                  <div className="col">
+                    <button
+                      type="button" className="btn btn-primary" data-toggle="modal"
+                      data-target="#myModal2"
+                    >
+                        Sel Data
                       </button>
-                    </div>
-                    <div className="col">
-                      <button
-                        type="button" className="btn btn-danger"
-                        onClick={this.confirmWipeData}
-                      >
-                        Wipe all data
+                  </div>
+                  <div className="col">
+                    <button
+                      type="button" className="btn btn-danger"
+                      onClick={this.confirmWipeData}
+                    >
+                        Wipe
                       </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -264,18 +243,13 @@ export default class Collapsible extends React.Component {
                 <div className="modal-body">
                   <Griddle
                     styleConfig={griddleStyle}
-                    data={this.props.data}
+                    data={this.props.data.filter(d => (d.date >= this.props.timeBounds[0] && d.date <= this.props.timeBounds[1]))}
                     components={{
-                      Row: d => <tr>test </tr>
+                      Row: Operation(d => console.log(d)),
+                      TableHeading,
+                      Layout
                     }}
-                  >
-                    <RowDefinition>
-                      <ColumnDefinition id="date" customComponent={DateCol} />
-                      <ColumnDefinition id="procedure" />
-                      <ColumnDefinition id="equipment" />
-                      <ColumnDefinition id="initProtSel" />
-                    </RowDefinition>
-                  </Griddle>
+                  />
                 </div>
               </div>
             </div>

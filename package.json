@@ -5,6 +5,7 @@
   "main": "''",
   "scripts": {
     "build": "webpack --config webpack.production.config.js --progress --profile --colors && cd cordova && cordova run android",
+    "build-apple": "webpack --config webpack.production.config.js --progress --profile --colors && cd cordova && cordova run ios",
     "webBuild": "webpack",
     "start": "webpack-dev-server --progress --profile --colors --host 0.0.0.0",
     "lint": "eslint --ext js --ext jsx src || exit 0"

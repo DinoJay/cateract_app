@@ -62,12 +62,11 @@ function lookupRadiation(e, conf) {
   const refEntries = refData.filter(d => getEntry(d, e, conf));
   if (refEntries.length === 0) return 0;
   if (refEntries.length === 1) return refEntries[0].radiation;
-  else return (refEntries[0].radiation + refEntries[1].radiation) / 2;
+  return (refEntries[0].radiation + refEntries[1].radiation) / 2;
 }
 
 function filterData(data, config) {
   if (!config.aggrSel) {
-    console.log('eyes');
     const ret = data.map((e) => {
       e.radiation = lookupRadiation(e, config);
       e.protection = lookUpProtection(e, config);
@@ -156,7 +155,8 @@ class Visualization extends React.Component {
       dim,
       data: filterData(this.props.data, this.props),
       callback: protClickCallback.bind(this),
-      threshhold: this.props.threshhold
+      threshhold: this.props.threshhold,
+      timeChange: this.props.timeChange
     });
 
     VisObj.setState({ data: filterData(this.props.data, this.props) });

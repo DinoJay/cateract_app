@@ -48,7 +48,8 @@ class App extends React.Component {
       leftEye: true,
       rightEye: false,
       aggrSel: false,
-      threshhold: 0.4
+      threshhold: 0.4,
+      timeBounds: [new Date(-8640000000000000), new Date()]
     };
   }
 
@@ -95,7 +96,7 @@ class App extends React.Component {
           dataChangeHandler={this.dataChangeHandler}
           selectionHandler={this.selectionHandler}
         />
-        <Visualization {...this.state} />
+        <Visualization timeChange={d => this.setState({ timeBounds: d })} {...this.state} />
       </div>
     );
   }
