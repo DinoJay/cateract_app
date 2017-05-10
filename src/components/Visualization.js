@@ -149,7 +149,6 @@ class Visualization extends React.Component {
       outerMargin
     };
 
-
     VisObj = new Vis({
       el: this.Vis,
       dim,
@@ -159,8 +158,10 @@ class Visualization extends React.Component {
       timeChange: this.props.timeChange
     });
 
-    VisObj.setState({ data: filterData(this.props.data, this.props) });
-    VisObj.reset(this.props.cumulated);
+    if (this.props.data.length > 0) {
+      VisObj.setState({ data: filterData(this.props.data, this.props) });
+      VisObj.reset(this.props.cumulated);
+    }
 
     // VisObj.setState({
     //   data: filterData(this.props.data, this.props)
@@ -183,9 +184,11 @@ class Visualization extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    console.log('PROPS', this.props);
     if (this.props.data.length !== prevProps.data.length) {
       VisObj.setState({ data: filterData(this.props.data, this.props) });
       VisObj.reset(this.props.cumulated);
+      console.log('reset');
     } else {
       const fd = filterData(this.props.data, this.props);
       if (fd.length > 0) {

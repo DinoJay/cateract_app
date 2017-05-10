@@ -73,7 +73,7 @@ const Operation = remove => connect((state, props) => ({
     <td>
       <button
         type="button" className="btn btn-sm btn-danger img-circle"
-        onClick={() => { remove(rowData); }}
+        onClick={() => { remove(rowData.id); }}
       >
       x
     </button>
@@ -86,28 +86,5 @@ Operation.propTypes = {
   remove: PropTypes.func
 };
 
-const TableHeading = d => (
-  <thead className="">
-    <tr>
-      <th>Proc.</th>
-      <th>Equip.</th>
-      <th>Time</th>
-      <th>Prot.</th>
-    </tr>
-  </thead>
-  );
 
-TableHeading.propTypes = {
-  rowData: PropTypes.object,
-  remove: PropTypes.func
-};
-
-const Layout = ({ Table, Pagination, Filter, SettingsWrapper }) => (
-  <div>
-    <Table />
-    <Pagination />
-  </div>
-);
-
-
-export { Layout, Operation, TableHeading };
+export default Operation ;

@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-let CUMULATED = false;
+const DOSELIMIT = 0.1;
 
 const keys = ['shield', 'glasses', 'cabin'];
 
@@ -41,19 +41,10 @@ const iconPathScale = d3.scaleOrdinal()
 
 const radColors = ['#ffff00', '#ffe600', '#ffcd00', '#ffb400', '#ff9900', '#ff7a00', '#ff5300', '#ff0000'];
 
-const gcd = function(a, b) {
-  if (!b) {
-    return a;
-  }
-
-  return gcd(b, a % b);
-};
 
 function d3TimeSwitch(yDate) {
-  // const [startDate, endDate] = yDate.domain();
-  // var maxWidth = / 5;
   switch (true) {
-  case (d3.timeDay.count(...yDate.domain()) === 1):
+  case (d3.timeDay.count(...yDate.domain()) <= 1):
     return {
       intervalKey: 'hours',
       tickInterval: d3.timeDay,
@@ -100,7 +91,7 @@ function d3TimeSwitch(yDate) {
 
 const formatTime = d3.timeFormat('%Y/%m/%d %H:%M ');
 
-function aggregate(data, timeInterval, intervalKey, st, cumulated = false) {
+function aggregate(data, timeInterval, intervalKey, st, et, cumulated = false) {
   // TODO: HACK
   const sumRad = ({ acc, sum }, e) => {
     const newSum = sum + e.sumRadiation;
@@ -109,9 +100,16 @@ function aggregate(data, timeInterval, intervalKey, st, cumulated = false) {
   };
 
   if (intervalKey === 'hours') {
-    const hourData = data.filter(d => (d.date.getTime() === st.getTime())).map((d) => {
+    const hourData = data.filter((d) => {
+      const date = d3.timeDay.floor(d.date);
+      const stDay = d3.timeDay.floor(st);
+      const etDay = d3.timeDay.floor(et);
+
+      return (date >= stDay && date <= etDay);
+    }
+    ).map((d) => {
       d.sumRadiation = d.radiation;
-      d.values = [d];
+      d.values = [Object.assign({}, d)];
       return d;
     });
     if (cumulated) {
@@ -234,8 +232,34 @@ function _update(hypo = false, cumulated = false) {
 
   const startDate = d3.timeDay.offset(self.yDate.domain()[0], -1);
   const endDate = d3.timeDay.offset(self.yDate.domain()[1], 1);
-  console.log('startDate', startDate, 'endDate', endDate);
-  const nestedData = aggregate(self.data, nestInterval, intervalKey, startDate, cumulated);
+  const nestedData = aggregate(self.data, nestInterval, intervalKey, startDate, endDate, cumulated);
+  const dayData = aggregate(self.data, d3.timeDay, 'days', startDate, endDate, cumulated);
+  // console.log('nested Data', nestedData);
+  // console.log('day Data', dayData);
+  nestedData.forEach((d) => {
+    const st = d3.timeDay.floor(d.date);
+    const et = d3.timeDay.floor(d3.timeDay.offset(d.date, 1));
+    const range = [self.yDate(st), self.yDate(et)];
+    // console.log('range', [st, et], range);
+    const dom = dayData
+      .filter(e => d3.range(0, e.date.getTime() === d.date.getTime()))
+      .reduce((acc, e) => (e.values.length > acc.values.length ? e : acc)).values;
+    const domRange = d3.range(0, self.data.length);
+
+    d.yScale = d3.scaleBand()
+            // TODO: fix hack
+            .domain(domRange)
+            .paddingInner(0.8)
+            .range(range);// d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+    d.bandwidth = d3.scaleBand()// TODO: fix hack
+            .domain(d3.range(0, 10))
+            .paddingInner(0.8)
+            .range(range)
+            .bandwidth();
+
+    // console.log('self.ydate', self.yDate.domain(), self.yDate.range(), range, st, et);
+  });
 
   // TODO: hack
   const newMaxRad = d3.max(nestedData
@@ -243,7 +267,6 @@ function _update(hypo = false, cumulated = false) {
     d => d.sumRadiation);
 
   self.maxRad = !hypo && newMaxRad > 0 ? newMaxRad : self.maxRad;
-  console.log('self.maxRad', self.maxRad);
 
   // const barHeight = self.yDate(startDate) - self.yDate(nestInterval.offset(startDate, -1));
   // const symbols = d3.scaleOrdinal()
@@ -252,25 +275,6 @@ function _update(hypo = false, cumulated = false) {
   const radBarWidth = d3.scaleLinear()
           .rangeRound([(self.dim.width / 2) - (self.dim.centerWidth / 2), 0])
           .domain([0, self.maxRad]);
-
-  const thresholdLine = d3.select('.rad-legend').selectAll('#thresholdLine')
-    .data([self.threshhold]);
-
-  const threshholdLineEnter = thresholdLine.enter()
-    .append('line')
-        .attr('id', 'thresholdLine')
-        .style('stroke-width', 2.5)
-        .attr('stroke', 'green')
-        .style('stroke-dasharray', 7.5);
-
-
-  thresholdLine.merge(threshholdLineEnter)
-        .transition()
-        .duration(delay)
-        .attr('x1', radBarWidth)
-        .attr('y1', self.dim.legendHeight)
-        .attr('x2', radBarWidth)
-        .attr('y2', self.dim.height);
 
   (function updateRadLegend() {
     const stepNum = 4;
@@ -302,10 +306,6 @@ function _update(hypo = false, cumulated = false) {
 
 
   const barHeight = d => self.yDate(nestInterval.offset(d, 1)) - self.yDate(d);
-  const y = d3.scaleBand()
-      .domain(nestedData.map((d, i) => i))
-      .paddingInner(0.8)
-      .range([0, self.dim.subHeight - 30]);// d3.scale.ordinal().rangeRoundBands([0, width], .05);
 
   (function protBars() {
     const stacked = d3.stack()
@@ -322,10 +322,11 @@ function _update(hypo = false, cumulated = false) {
           .rangeRound([0, (self.dim.width / 2) - (self.dim.centerWidth / 2)]);
           // .clamp(true);
 
-        d.y = intervalKey === 'hours' ? y(i) : self.yDate(d.data.date) + (arrowSize(intervalKey) / 2);
+
+        d.y = intervalKey === 'hours' ? d.data.yScale(i) : self.yDate(d.data.date) + (arrowSize(intervalKey) / 2);
         d.x = barWidth(d[0]);
         d.width = barWidth(d[1]) - barWidth(d[0]);
-        d.height = intervalKey === 'hours' ? y.bandwidth() : d3.max([4, barHeight(d.data.date) - (arrowSize(intervalKey) * (3 / 2))]);
+        d.height = intervalKey === 'hours' ? d.data.bandwidth : d3.max([4, barHeight(d.data.date) - (arrowSize(intervalKey) * (3 / 2))]);
       });
     });
 
@@ -454,7 +455,6 @@ function _update(hypo = false, cumulated = false) {
         .tspans(d => wordwrap(timeFormat(d.date), 3))
         .attr('alignment-baseline', 'hanging');
 
-      console.log('cumulated Arg', cumulated);
       gEnter
         .append('path')
         .attr('fill', 'grey')
@@ -472,7 +472,7 @@ function _update(hypo = false, cumulated = false) {
           d3.select('.context').select('.brush')
             .transition()
             .duration(100)
-            .call(self.brush.move, timeDomain.map(self.brushScale), 'ARG');
+            .call(self.brush.move, timeDomain.map(self.brushScale));
         });
 
       return gEnter;
@@ -518,9 +518,10 @@ function _update(hypo = false, cumulated = false) {
 
     nestedData.forEach((d, i) => {
       d.x = radBarWidth(d.sumRadiation);
-      d.y = intervalKey === 'hours' ? y(i) : self.yDate(d.date) + (arrowSize(intervalKey) / 2);
+      d.y = intervalKey === 'hours' ? d.yScale(i) : self.yDate(d.date) + (arrowSize(intervalKey) / 2);
+      // console.log('Y', d.y);
       d.width = radBarWidth(0) - radBarWidth(d.sumRadiation);
-      d.height = intervalKey === 'hours' ? y.bandwidth() : d3.max([4, barHeight(d.date) - (arrowSize(intervalKey) * (3 / 2))]);
+      d.height = intervalKey === 'hours' ? d.bandwidth : d3.max([4, barHeight(d.date) - (arrowSize(intervalKey) * (3 / 2))]);
     });
 
     const radBarEnter = radBar.enter()
@@ -645,7 +646,6 @@ function create(cumulated) {
   //     .attr('stop-color', d => d);
 //
 
-  console.log('Outermargin', outerMargin);
   const cont = svg
     .append('g')
     .attr('class', 'cont')
@@ -837,20 +837,20 @@ function create(cumulated) {
       startDate = new Date();
       endDate = d3.timeMonth.offset(new Date(), 1);
     }
-    console.log('startDate', startDate, 'endDate', endDate);
 
     const offset = 30;
     const yDate = d3.scaleTime()
     .domain([d3.timeMonth.floor(startDate), d3.timeMonth.offset(endDate, 1)])
     // TODO: fix offset bug
     .range([0, subHeight - offset]);
-    console.log('offset', subHeight - offset);
 
     const brushScale = d3.scaleTime()
     .domain([d3.timeMonth.floor(startDate), d3.timeMonth.ceil(endDate)])
   // .domain([startDate, endDate])
     .range([brushHandleSize, width - brushHandleSize]);
 
+  // .domain([startDate, endDate])
+    //
     context.selectAll('.mark')
     .data(data)
     .enter()
@@ -861,6 +861,35 @@ function create(cumulated) {
     .attr('y1', 0)
     .attr('y2', brushHeight)
     .attr('x2', d => brushScale(d.date));
+
+    const thresholdProc = data.reduce((acc, d) => {
+      if (acc.sum >= DOSELIMIT) return { sum: acc.sum, ret: d };
+      return { sum: acc.sum + d.radiation, ret: null };
+    }, { sum: 0, ret: null }).ret;
+
+
+    const greenLimit = (thresholdProc ? brushScale(thresholdProc.date) : width) - brushHandleSize;
+
+    context
+      .insert('g', ':first-child')
+    .attr('transform', `translate(${brushHandleSize},0)`)
+      .append('rect')
+    .attr('height', brushHeight)
+    .attr('width', greenLimit)
+    .attr('fill', 'green')
+    .attr('opacity', 0.4);
+
+
+//
+    context
+      .insert('g', ':first-child')
+    .attr('transform', `translate(${thresholdProc ? brushScale(thresholdProc.date) : 0},${0})`)
+      .append('rect')
+    .attr('height', brushHeight)
+    .attr('width', width - (2 * brushHandleSize) - greenLimit)
+    .attr('fill', 'red')
+    .attr('opacity', 0.4);
+
 
     context.append('g')
     .attr('class', 'axis axis--x')
@@ -903,8 +932,10 @@ function create(cumulated) {
 
       self.setState({ data, yDate, brush, brushScale });
       const radio = d3.select('#radio1').property('checked');
-      console.log('RADIO', radio);
       self.update(false, !radio);
+
+      // const st = d3.timeDay.floor(d0[0]);
+      // const et = d3.timeDay.floor(d3.timeDay.offset(d0[1], 1));
       self.timeChange(d0);
 
 
@@ -927,9 +958,7 @@ function create(cumulated) {
 class Vis {
   constructor(initState) {
     // TODO: move out instance vars
-    console.log('this', this);
     Object.keys(initState).forEach(k => (this[k] = initState[k]));
-    console.log('this', this);
     this.keys = keys;
     this.maxRad = 0;
     // create.bind(this)();

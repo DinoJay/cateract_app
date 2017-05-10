@@ -62,8 +62,7 @@ module.exports = {
   resolve: {
     extensions: ['', '.js', '.jsx'],
     alias: {
-      cordova: path.join(__dirname, 'cordova/platforms/android/platform_www/cordova.js'),
-      cordova_plugins: path.join(__dirname, 'cordova/platforms/android/platform_www/cordova_plugins.js')
+      cordova: path.join(__dirname, 'cordova/platforms/android/platform_www/cordova.js')
     }
   },
   module: {

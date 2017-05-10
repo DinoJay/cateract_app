@@ -1,47 +1,28 @@
 import React, { PropTypes } from 'react';
-import Griddle, { ColumnDefinition, RowDefinition } from 'griddle-react';
-import ProcedureForm from './ProcedureForm';
-import { Operation, TableHeading, Layout } from './Operation';
 
+import ProcedureForm from './ProcedureForm';
+import ProcedureGrid from './ProcedureGrid';
+
+import helpScreenSrc from '../global_styles/anno_screen.svg';
 
 const dbg = (arg) => {
   console.log('dbg', arg);
   return arg;
 };
 
-const griddleStyle = {
-  classNames: {
-    Cell: 'griddle-cell',
-    Filter: 'griddle-filter',
-    Loading: 'griddle-loadingResults',
-    NextButton: 'griddle-next-button',
-    NoResults: 'griddle-noResults',
-    PageDropdown: 'griddle-page-select',
-    Pagination: 'griddle-pagination',
-    PreviousButton: 'griddle-previous-button',
-    Row: 'griddle-row',
-    RowDefinition: 'griddle-row-definition',
-    Settings: 'griddle-settings',
-    SettingsToggle: 'griddle-settings-toggle',
-    Table: 'table table-sm table-bordered',
-    TableBody: 'griddle-table-body',
-    TableHeading: 'griddle-table-heading',
-    TableHeadingCell: 'griddle-table-heading-cell',
-    TableHeadingCellAscending: 'griddle-heading-ascending',
-    TableHeadingCellDescending: 'griddle-heading-descending'
-  }
-};
 
 export default class Collapsible extends React.Component {
   constructor(props) {
     // Pass props to parent class
     super(props);
-    this.state = props;
+
+    this.state = { ...this.props, idsDelete: [] };
     this.confirmWipeData = this._confirmWipeData.bind(this);
+    this.operationRemove = this._operationRemove.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log('newProps', nextProps);
+    this.setState({ data: nextProps.data });
   }
 
   _onClickView() {
@@ -62,24 +43,20 @@ export default class Collapsible extends React.Component {
     }
   }
 
-  render() {
-    const DateCol = ({ value }) => <span style={{ color: '#0000AA' }}>{dbg(formatTime(value))}</span>;
-    const ProtCol = (arg) => {
-      console.log('arg', arg);
-      return (<div className="btn-group-sm btn-group-vertical">
-        { glasses && <button type="button" className="btn btn-success btn-sm" > glasses </button>
-        }
-        {
-          cabin && <button type="button" className="btn btn-warning btn-sm" > Cabin </button>
-        }
-        { shield && <button type="button" className="btn btn-primary btn-sm" > Shield </button>
-        }
-        { !glasses && !shield && !cabin && <p><strong>No </strong></p> }
-      </div>);
-    };
+  _operationRemove(id) {
+    // const rawData = JSON.parse(localStorage.getItem('dataHHH'));
+    const newData = this.state.data.filter(d => d.id !== id);
+    // localStorage.setItem('dataHHH', JSON.stringify(newData));
+    const realData = newData
+      .sort((a, b) => a.date - b.date);
 
+    this.setState(prevState => ({ data: realData, idsDelete: prevState.idsDelete.concat([id]) }));
+  }
+
+  render() {
+    console.log('render Collapsible');
     return (
-      <div className="container">
+      <div >
         <div >
           <nav className="navbar navbar-light bg-faded" >
             <span>
@@ -98,8 +75,21 @@ export default class Collapsible extends React.Component {
                   className="navbar-toggler-icon tooltip-holder"
                 />
               </button>
+
+              <a className="navbar-brand" href="#">
+                <img src="/assets/brand/bootstrap-solid.svg" width="30" height="30" className="d-inline-block " alt="" />
+                  EyeRad
+              </a>
+
+              <button
+                className="btn btn-secondary "
+                data-toggle="modal"
+                data-target="#modal-help"
+              >
+                ?
+              </button>
             </span>
-            <h3>EyeRad</h3>
+
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
               <div className="navbar-nav mr-auto">
                 <div className="row">
@@ -124,10 +114,9 @@ export default class Collapsible extends React.Component {
                             this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
-                          className="custom-control-input"
                           checked={this.state.leftEye}
+                          className="form-check-input"
                         />
-                        <span className="custom-control-indicator" />
                       </label>
                     </div>
                     <div className="form-check form-check-inline">
@@ -143,13 +132,13 @@ export default class Collapsible extends React.Component {
                             };
 
                             if (!newState.leftEye && !newState.rightEye) return;
+                            console.log('rightEye', newState);
                             this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
-                          className="custom-control-input"
+                          className="form-check-input"
                           checked={this.state.rightEye}
                         />
-                        <span className="custom-control-indicator" />
                       </label>
                     </div>
                   </div>
@@ -183,41 +172,61 @@ export default class Collapsible extends React.Component {
 
                 <hr className="my-3" />
 
-                <div className="row">
-                  <div className="col">
+                <div className="justify-content-center">
+                  <div className="justify-content-md-center btn-group">
                     <button
                       type="button" className="btn btn-success" data-toggle="modal"
                       data-target="#myModal"
                     >
-                        Enter Proc
+                        Enter<br />Procedure
                       </button>
-                  </div>
-                  <div className="col">
                     <button
                       type="button" className="btn btn-primary" data-toggle="modal"
                       data-target="#myModal2"
                     >
-                        Sel Data
+                        Selected<br />Procedures
                       </button>
-                  </div>
-                  <div className="col">
                     <button
                       type="button" className="btn btn-danger"
                       onClick={this.confirmWipeData}
                     >
-                        Wipe
+                        Wipe all<br />Procedures
                       </button>
                   </div>
                 </div>
               </div>
             </div>
           </nav>
+
+          <div
+            className="modal bd-example-modal-lg fade" id="modal-help" tabIndex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true"
+          >
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content" >
+
+                <div className="modal-header">
+                  <h5 className="modal-title" id="exampleModalLabel">Help Menu</h5>
+                  <button
+                    type="button" className="close" data-dismiss="modal" aria-label="Close"
+                  >
+                    <span aria-hidden="true">x</span>
+                  </button>
+
+                </div>
+                <div className="modal-body">
+                  <img src={helpScreenSrc} className="img-fluid" alt="Responsive image" />
+                </div>
+              </div>
+            </div>
+          </div>
           <div
             className="modal bd-example-modal-lg fade" id="myModal" tabIndex="-1" role="dialog"
             aria-labelledby="exampleModalLabel" aria-hidden="true"
           >
             <div className="modal-dialog modal-lg" role="document">
               <div className="modal-content">
+
                 <div className="modal-header">
                   <h5 className="modal-title" id="exampleModalLabel">Add Procedures</h5>
                   <button type="button" className="close" data-dismiss="modal" aria-label="Close">
@@ -233,23 +242,34 @@ export default class Collapsible extends React.Component {
             aria-labelledby="exampleModalLabel" aria-hidden="true"
           >
             <div className="modal-dialog modal-lg" role="document">
-              <div className="modal-content">
+              <div className="modal-content" >
+
                 <div className="modal-header">
-                  <h5 className="modal-title" id="exampleModalLabel">Vis Data</h5>
-                  <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                  <h5 className="modal-title" id="exampleModalLabel">Selected Procedures</h5>
+                  <button
+                    type="button" className="close" data-dismiss="modal" aria-label="Close"
+                    onClick={() => this.setState({ data: this.props.data, idsDelete: [] })}
+                  >
                     <span aria-hidden="true">x</span>
                   </button>
                 </div>
-                <div className="modal-body">
-                  <Griddle
-                    styleConfig={griddleStyle}
-                    data={this.props.data.filter(d => (d.date >= this.props.timeBounds[0] && d.date <= this.props.timeBounds[1]))}
-                    components={{
-                      Row: Operation(d => console.log(d)),
-                      TableHeading,
-                      Layout
-                    }}
-                  />
+                <ProcedureGrid
+                  {...this.state}
+                  operationRemove={this.operationRemove}
+                  operationRemoveHandler={this.props.operationRemoveHandler}
+                  timeBounds={this.props.timeBounds}
+                />
+
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className={'btn btn-primary'}
+                    data-dismiss="modal"
+                    aria-label="Close"
+                    onClick={() => this.props.operationRemoveHandler(this.state.idsDelete)}
+                  >
+                    Save changes
+                </button>
                 </div>
               </div>
             </div>
@@ -263,5 +283,7 @@ export default class Collapsible extends React.Component {
 
 Collapsible.propTypes = {
   selectionHandler: PropTypes.func,
-  dataWipeHandler: PropTypes.func
+  dataWipeHandler: PropTypes.func,
+  operationRemoveHandler: PropTypes.func,
+  timeBounds: PropTypes.array
 };

@@ -2,10 +2,11 @@ import * as d3 from 'd3';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
-import $ from 'jquery';
+// import $ from 'jquery';
 // import { introJs } from 'intro.js';
 
-import 'cordova';
+// delete for web build
+// import 'cordova';
 // import 'intro.js/introjs.css';
 // import 'cordova_plugins';
 
@@ -32,6 +33,7 @@ class App extends React.Component {
     this.selectionHandler = this._selectionHandler.bind(this);
     this.dataChangeHandler = this._dataChangeHandler.bind(this);
     this.dataWipeHandler = this._dataWipeHandler.bind(this);
+    this.operationRemoveHandler = this._operationRemoveHandler.bind(this);
     // Set initial state
     const stringData = localStorage.getItem('dataHHH');
     console.log('stringData', stringData);
@@ -59,16 +61,9 @@ class App extends React.Component {
         $('[data-toggle="tooltip"]').tooltip();
       });
       $('.tooltip-holder').tooltip('toggle');
-      console.log('first-try');
     }
   }
 
-    // localStorage.setItem('6', JSON.stringify(ArrayData));
-
-    // NativeStorage.getItem('5', (rawData) => {
-    //   console.log('data exists', rawData);
-    // }, () => {
-    // });
 
   _selectionHandler({ leftEye, rightEye, cumulated }) {
     console.log('cumulated', cumulated);
@@ -77,24 +72,52 @@ class App extends React.Component {
 
   _dataChangeHandler(newData) {
     const rawData = JSON.parse(localStorage.getItem('dataHHH'));
-    localStorage.setItem('dataHHH', JSON.stringify(rawData.concat(newData)));
-    this.setState({ data: this.state.data.concat(newData.map(preprocess))
-      .sort((a, b) => a.date - b.date) });
+    const newRawData = rawData.concat(newData);
+    newRawData.forEach((d, i) => (d.id = i));
+    localStorage.setItem('dataHHH', JSON.stringify(newRawData));
+
+    const realData = this.state.data.concat(newData.map(preprocess))
+      .sort((a, b) => a.date - b.date);
+
+    this.setState({ data: realData });
   }
 
   _dataWipeHandler() {
     localStorage.setItem('dataHHH', JSON.stringify([]));
     this.setState({ data: [] });
   }
+
+  _operationRemoveHandler(ids) {
+    console.log('operation remove', ids);
+    if (ids.length === 0) return;
+    const rawData = JSON.parse(localStorage.getItem('dataHHH'));
+    const newData = rawData.filter(d => !ids.includes(d.id));
+    localStorage.setItem('dataHHH', JSON.stringify(newData));
+
+    const realData = newData.map(preprocess)
+      .sort((a, b) => a.date - b.date);
+
+    this.setState({ data: realData });
+  }
 // TODO: change later!
   render() {
+    console.log('render', this.state.timeBounds);
+
+    const newData = this.state.data.filter((d) => {
+      const newDate = d.date.setHours(12);
+      return newDate >= this.state.timeBounds[0] && newDate <= this.state.timeBounds[1];
+    });
+
     return (
       <div>
         <Collapsible
-          {...this.state}
+          data={newData}
+          leftEye={this.state.leftEye}
+          rightEye={this.state.rightEye}
           dataWipeHandler={this.dataWipeHandler}
           dataChangeHandler={this.dataChangeHandler}
           selectionHandler={this.selectionHandler}
+          operationRemoveHandler={this.operationRemoveHandler}
         />
         <Visualization timeChange={d => this.setState({ timeBounds: d })} {...this.state} />
       </div>
@@ -103,7 +126,7 @@ class App extends React.Component {
 
 }
 
-// window.onload = visualization;
+window.onload = ReactDOM.render(<App />, document.getElementById('app'));
 
 const app = {
     // visualization Constructor

@@ -82,7 +82,7 @@ class OperationForm extends React.Component {
       <div className="container">
         <div className="form-group">
           <div className="row">
-            <div className="col-sm-3">
+            <div className="col-12">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
                   Procedure
@@ -101,7 +101,7 @@ class OperationForm extends React.Component {
               </div>
             </div>
 
-            <div className="col-sm-3">
+            <div className="col-12">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
                   Equipment
@@ -121,7 +121,7 @@ class OperationForm extends React.Component {
                 </div>
               </div>
             </div>
-            <div className="col-sm-2">
+            <div className="col-12">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
                   Protection
@@ -153,7 +153,7 @@ class OperationForm extends React.Component {
                 </div>
               </div>
             </div>
-            <div className="col-sm-3">
+            <div className="col-12">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
                 Start / End Date
@@ -182,7 +182,7 @@ class OperationForm extends React.Component {
               </div>
             </div>
 
-            <div className="col-sm-1">
+            <div className="col-12">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
                   Quantity
@@ -218,7 +218,7 @@ OperationForm.propTypes = {
 };
 
 const Operation = ({ data, remove }) => (
-  <tr >
+  <tr>
     <th scope="row">{data.quantity}</th>
     <td>{abbr(data.procedure)}</td>
     <td>{ data.equipment }</td>
@@ -227,7 +227,7 @@ const Operation = ({ data, remove }) => (
       <div className="">{data.endDate.format('DD-MM-YY')}</div>
     </td>
     <td>
-      <div className="btn-group-sm btn-group-vertical">
+      <div className="btn-group btn-group-vertical">
         { data.glasses
           && <button type="button" className="btn btn-success btn-sm" > glasses </button>
         }
@@ -320,13 +320,14 @@ export default class ProcedureForm extends React.Component {
   }
 
   generateData() {
-    const data = this.state.data.reduce((acc, d) => {
+    const data = this.state.data.reduce((acc, d, j) => {
       const entries = [];
       while (entries.length < d.quantity) {
         const minDate = d3.timeDay.offset(d.startDate.toDate(), -1);
         const dayRange = d3.timeDay.range(minDate, d.endDate.toDate());
         entries.push(...dayRange.reduce((acc2, date, i) => {
-          const dateTimeStr = formatTime(new Date(date));
+          const newDate = new Date(date);
+          const dateTimeStr = formatTime(newDate);
           if (i < d.quantity) {
             const entry = {
               date: dateTimeStr,
@@ -356,7 +357,6 @@ export default class ProcedureForm extends React.Component {
             remove={this.handleRemove}
           />
         </div>
-
         <div className="modal-footer">
           <button
             type="button"
