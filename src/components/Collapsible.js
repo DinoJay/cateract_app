@@ -27,12 +27,10 @@ export default class Collapsible extends React.Component {
 
   _onClickView() {
     const newState = {
-      leftEye: this.state.leftEye,
-      rightEye: this.state.rightEye,
+      eye: this.state.eye,
       cumulated: !this.state.cumulated
     };
 
-    if (!newState.leftEye && !newState.rightEye) return;
     this.props.selectionHandler(newState);
     this.setState(newState);
   }
@@ -101,43 +99,39 @@ export default class Collapsible extends React.Component {
                   </label >
                   <div className="col-sm-10">
                     <div className="form-check form-check-inline">
-                      <label className="custom-control custom-checkbox">
+                      <label className="custom-control custom-radio">
                         <span className="custom-control-description">Left Eye</span>
                         <input
-                          type="checkbox" id="left-eye-sel"
+                          type="radio" id="left-eye-sel"
                           onClick={() => {
                             const newState = {
-                              leftEye: !this.state.leftEye,
-                              rightEye: this.state.rightEye,
+                              eye: true,
                               cumulated: this.state.cumulated
                             };
                             this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
-                          checked={this.state.leftEye}
+                          checked={this.state.eye}
                           className="form-check-input"
                         />
                       </label>
                     </div>
                     <div className="form-check form-check-inline">
-                      <label className="custom-control custom-checkbox">
+                      <label className="custom-control custom-radio">
                         <span className="custom-control-description">Right Eye</span>
                         <input
-                          type="checkbox" id="right-eye-sel"
+                          type="radio" id="right-eye-sel"
                           onClick={() => {
                             const newState = {
-                              leftEye: this.state.leftEye,
-                              rightEye: !this.state.rightEye,
+                              eye: false,
                               cumulated: this.state.cumulated
                             };
 
-                            if (!newState.leftEye && !newState.rightEye) return;
-                            console.log('rightEye', newState);
                             this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
                           className="form-check-input"
-                          checked={this.state.rightEye}
+                          checked={!this.state.eye}
                         />
                       </label>
                     </div>

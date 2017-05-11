@@ -56,12 +56,14 @@ const ProcedureGrid = props =>
     <Griddle
       styleConfig={griddleStyle}
       data={props.data}
-
       plugins={[plugins.LocalPlugin]}
       components={{
         Row: Operation(props.operationRemove),
         TableHeading,
         Layout
+      }}
+      events={{
+        onFilter: (filterText) => { console.log(this.state); }
       }}
     />
   </div>;

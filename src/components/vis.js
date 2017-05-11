@@ -467,7 +467,6 @@ function _update(hypo = false, cumulated = false) {
             tickInterval.ceil(tickInterval.offset(d.date, 1))];
           // console.log('timeDomain', timeDomain);
           // d3.select('.brush').property('cumulated', d3.select('#radio1').property('checked'));
-          CUMULATED = cumulated;
 
           d3.select('.context').select('.brush')
             .transition()
@@ -845,6 +844,7 @@ function create(cumulated) {
     .range([0, subHeight - offset]);
 
     const brushScale = d3.scaleTime()
+    .clamp(true)
     .domain([d3.timeMonth.floor(startDate), d3.timeMonth.ceil(endDate)])
   // .domain([startDate, endDate])
     .range([brushHandleSize, width - brushHandleSize]);
@@ -862,31 +862,50 @@ function create(cumulated) {
     .attr('y2', brushHeight)
     .attr('x2', d => brushScale(d.date));
 
-    const thresholdProc = data.reduce((acc, d) => {
-      if (acc.sum >= DOSELIMIT) return { sum: acc.sum, ret: d };
-      return { sum: acc.sum + d.radiation, ret: null };
-    }, { sum: 0, ret: null }).ret;
 
+    const dataByYear = d3.nest()
+      .key(d => formatTime(d3.timeYear(d.date)))
+      .entries(data);
 
-    const greenLimit = (thresholdProc ? brushScale(thresholdProc.date) : width) - brushHandleSize;
+    const thresholdByYear = dataByYear.map((e) => {
+      e.threshold = e.values.reduce((acc, d) => {
+        if (acc.sum >= DOSELIMIT) return { sum: acc.sum, ret: d };
+        return { sum: acc.sum + d.radiation, ret: null };
+      }, { sum: 0, ret: null }).ret;
+      return e;
+    });
 
-    context
+    console.log('threshold by year', thresholdByYear);
+    thresholdByYear.forEach((d, i) => {
+      if (d.threshold) {
+        d.threshold.pos = brushScale(d.threshold.date) - brushHandleSize;
+      }
+    });
+
+    // console.log('thresshold by year', thresholdByYear);
+    //
+    context.insert('g', ':first-child').selectAll('rect')
+      .data(thresholdByYear)
+      .enter()
       .insert('g', ':first-child')
-    .attr('transform', `translate(${brushHandleSize},0)`)
+    .attr('transform', d => `translate(${brushScale(d3.timeYear.floor(d.values[0].date))},0)`)
       .append('rect')
     .attr('height', brushHeight)
-    .attr('width', greenLimit)
+    .attr('width', d => brushScale(d.threshold ? d.threshold.date : d3.timeYear.ceil(d.values[d.values.length - 1].date)) - brushScale(d3.timeYear.floor(d.values[0].date)))// d.threshold ? d.threshold.pos - brushScale(d.values[0].date) : 0)
     .attr('fill', 'green')
     .attr('opacity', 0.4);
 
 
 //
-    context
+    context.insert('g', ':first-child').selectAll('rect')
+      .data(thresholdByYear)
+      .enter()
       .insert('g', ':first-child')
-    .attr('transform', `translate(${thresholdProc ? brushScale(thresholdProc.date) : 0},${0})`)
+    .attr('transform', d => d.threshold ? `translate(${brushScale(d.threshold.date)},${0})` : null)
       .append('rect')
     .attr('height', brushHeight)
-    .attr('width', width - (2 * brushHandleSize) - greenLimit)
+
+    .attr('width', d => d.threshold ? brushScale(d3.timeYear.ceil(d.threshold.date)) - brushScale(d.threshold.date) : 0)
     .attr('fill', 'red')
     .attr('opacity', 0.4);
 

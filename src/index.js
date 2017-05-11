@@ -47,8 +47,7 @@ class App extends React.Component {
     }
     this.state = {
       data,
-      leftEye: true,
-      rightEye: false,
+      eye: true,
       aggrSel: false,
       threshhold: 0.4,
       timeBounds: [new Date(-8640000000000000), new Date()]
@@ -65,9 +64,9 @@ class App extends React.Component {
   }
 
 
-  _selectionHandler({ leftEye, rightEye, cumulated }) {
+  _selectionHandler({ eye, cumulated }) {
     console.log('cumulated', cumulated);
-    this.setState({ leftEye, rightEye, cumulated });
+    this.setState({ eye, cumulated });
   }
 
   _dataChangeHandler(newData) {
@@ -112,8 +111,7 @@ class App extends React.Component {
       <div>
         <Collapsible
           data={newData}
-          leftEye={this.state.leftEye}
-          rightEye={this.state.rightEye}
+          eye={this.state.eye}
           dataWipeHandler={this.dataWipeHandler}
           dataChangeHandler={this.dataChangeHandler}
           selectionHandler={this.selectionHandler}

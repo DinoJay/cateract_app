@@ -16,21 +16,14 @@ const refData = rawRefData.map((d) => {
 });
 
 function getEntry(d, e, conf) {
-  if (conf.leftEye && conf.rightEye) {
-    return (
-    d.equipment === e.equipment &&
-    d.procedure === e.procedure && d.shield === e.protSel.shield &&
-    d.glasses === e.protSel.glasses && d.cabin === e.protSel.cabin
-    );
-  }
-  if (conf.leftEye) {
+  if (conf.eye) {
     return (
     d.eye === 'left' && d.equipment === e.equipment &&
     d.procedure === e.procedure && d.shield === e.protSel.shield &&
     d.glasses === e.protSel.glasses && d.cabin === e.protSel.cabin
     );
   }
-  if (conf.rightEye) {
+  if (!conf.eye) {
     return (
     d.eye === 'right' && d.equipment === e.equipment &&
     d.procedure === e.procedure && d.shield === e.protSel.shield &&
