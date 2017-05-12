@@ -1,7 +1,8 @@
 import * as d3 from 'd3';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import _ from 'lodash';
+import 'font-awesome/css/font-awesome.css';
+// import _ from 'lodash';
 // import $ from 'jquery';
 // import { introJs } from 'intro.js';
 
@@ -126,23 +127,23 @@ class App extends React.Component {
 
 window.onload = ReactDOM.render(<App />, document.getElementById('app'));
 
-const app = {
-    // visualization Constructor
-  initialize() {
-    document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
-  },
-
-    // deviceready Event Handler
-    //
-    // Bind any cordova events here. Common events are:
-    // 'pause', 'resume', etc.
-  onDeviceReady() {
-    ReactDOM.render(<App />, document.getElementById('app'));
-  },
-
-    // Update DOM on a Received Event
-  receivedEvent() {
-  }
-};
+// const app = {
+//     // visualization Constructor
+//   initialize() {
+//     document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+//   },
+//
+//     // deviceready Event Handler
+//     //
+//     // Bind any cordova events here. Common events are:
+//     // 'pause', 'resume', etc.
+//   onDeviceReady() {
+//     ReactDOM.render(<App />, document.getElementById('app'));
+//   },
+//
+//     // Update DOM on a Received Event
+//   receivedEvent() {
+//   }
+// };
 
 app.initialize();

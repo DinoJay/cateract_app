@@ -10,7 +10,7 @@ module.exports = [
     loader: 'file'
   },
   {
-    test: /\.(woff|woff2)$/,
+    test: /\.(woff|woff2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
     // exclude: /(node_modules|bower_components)/,
     loader: 'url?prefix=font/&limit=5000'
   },
@@ -21,7 +21,6 @@ module.exports = [
   },
   {
     test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-    exclude: /(node_modules|bower_components)/,
     loader: 'url?limit=10000&mimetype=image/svg+xml'
   },
   {
@@ -31,17 +30,14 @@ module.exports = [
   },
   {
     test: /\.jpg/,
-    exclude: /(node_modules|bower_components)/,
     loader: 'url-loader?limit=10000&mimetype=image/jpg'
   },
   {
     test: /\.png/,
-    exclude: /(node_modules|bower_components)/,
     loader: 'url-loader?limit=10000&mimetype=image/png'
   },
   {
     test: /\.csv/,
-    exclude: /(node_modules|bower_components)/,
     loader: 'dsv-loader'
   },
   {

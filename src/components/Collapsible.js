@@ -4,12 +4,7 @@ import ProcedureForm from './ProcedureForm';
 import ProcedureGrid from './ProcedureGrid';
 
 import helpScreenSrc from '../global_styles/anno_screen.svg';
-
-const dbg = (arg) => {
-  console.log('dbg', arg);
-  return arg;
-};
-
+import logoSrc from '../global_styles/logo.png';
 
 export default class Collapsible extends React.Component {
   constructor(props) {
@@ -75,17 +70,18 @@ export default class Collapsible extends React.Component {
               </button>
 
               <a className="navbar-brand" href="#">
-                <img src="/assets/brand/bootstrap-solid.svg" width="30" height="30" className="d-inline-block " alt="" />
-                  EyeRad
+                <img src={logoSrc} width="100" height="30" className="d-inline-block " alt="" />
               </a>
-
               <button
-                className="btn btn-secondary "
+                className="btn btn-sm"
                 data-toggle="modal"
                 data-target="#modal-help"
               >
-                ?
+                <i
+                  className="fa fa-question fa-2x" aria-hidden="true"
+                />
               </button>
+
             </span>
 
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
@@ -100,9 +96,9 @@ export default class Collapsible extends React.Component {
                   <div className="col-sm-10">
                     <div className="form-check form-check-inline">
                       <label className="custom-control custom-radio">
-                        <span className="custom-control-description">Left Eye</span>
                         <input
                           type="radio" id="left-eye-sel"
+                          className="custom-control-input"
                           onClick={() => {
                             const newState = {
                               eye: true,
@@ -112,13 +108,13 @@ export default class Collapsible extends React.Component {
                             this.setState(newState);
                           }}
                           checked={this.state.eye}
-                          className="form-check-input"
                         />
+                        <span className="custom-control-indicator" />
+                        <span className="custom-control-description">Left Eye</span>
                       </label>
                     </div>
                     <div className="form-check form-check-inline">
                       <label className="custom-control custom-radio">
-                        <span className="custom-control-description">Right Eye</span>
                         <input
                           type="radio" id="right-eye-sel"
                           onClick={() => {
@@ -130,9 +126,11 @@ export default class Collapsible extends React.Component {
                             this.props.selectionHandler(newState);
                             this.setState(newState);
                           }}
-                          className="form-check-input"
+                          className="custom-control-input"
                           checked={!this.state.eye}
                         />
+                        <span className="custom-control-indicator" />
+                        <span className="custom-control-description">Right Eye</span>
                       </label>
                     </div>
                   </div>

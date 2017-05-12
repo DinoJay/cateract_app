@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-const DOSELIMIT = 0.1;
+const DOSELIMIT = 0.4;
 
 const keys = ['shield', 'glasses', 'cabin'];
 
@@ -726,7 +726,9 @@ function create(cumulated) {
 
             const newData = self.callback(d, data);
             self.setState({ data: newData });
-            self.update(true, cumulated);
+
+            const radio = d3.select('#radio1').property('checked');
+            self.update(false, !radio);
           });
           // .text(d => d.key);
 
@@ -869,7 +871,8 @@ function create(cumulated) {
 
     const thresholdByYear = dataByYear.map((e) => {
       e.threshold = e.values.reduce((acc, d) => {
-        if (acc.sum >= DOSELIMIT) return { sum: acc.sum, ret: d };
+        if (acc.ret) return acc;
+        if (acc.sum + d.radiation >= DOSELIMIT) return { sum: acc.sum + d.radiation, ret: d };
         return { sum: acc.sum + d.radiation, ret: null };
       }, { sum: 0, ret: null }).ret;
       return e;
