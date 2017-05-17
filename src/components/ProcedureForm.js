@@ -320,7 +320,8 @@ export default class ProcedureForm extends React.Component {
   }
 
   generateData() {
-    const data = this.state.data.reduce((acc, d, j) => {
+    console.log('data number procedures', this.state.data);
+    const data = this.state.data.reduce((acc, d) => {
       const entries = [];
       while (entries.length < d.quantity) {
         const minDate = d3.timeDay.offset(d.startDate.toDate(), -1);
@@ -328,7 +329,7 @@ export default class ProcedureForm extends React.Component {
         entries.push(...dayRange.reduce((acc2, date, i) => {
           const newDate = new Date(date);
           const dateTimeStr = formatTime(newDate);
-          if (i < d.quantity) {
+          if ((entries.length + acc2.length) < d.quantity) {
             const entry = {
               date: dateTimeStr,
               equipment: d.equipment,

@@ -114,7 +114,7 @@ class Visualization extends React.Component {
     const brushHeight = 50;
     const brushMargin = 65;
     const legendHeight = 35;
-    const legendMargin = 10;
+    const legendMargin = 30;
     const outerMargin = { top: 0, right: 0, bottom: 0, left: 5 };
     const innerMargin = {
       top: brushHeight + brushMargin + legendHeight + legendMargin,

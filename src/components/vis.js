@@ -1,8 +1,9 @@
 import * as d3 from 'd3';
 
-const DOSELIMIT = 0.4;
+const DOSELIMIT = 20;
 
 const keys = ['shield', 'glasses', 'cabin'];
+const smallerFontSize = 12;
 
 const delay = 900;
 
@@ -144,6 +145,16 @@ d3.selection.prototype.tspans = function(lines, lh) {
             .attr('dy', (d, i) => (i ? lh || 15 : 0));
 };
 
+// d3.selection.prototype.legend = function(lines, lh) {
+//   return this.selectAll('tspan')
+//             .data(lines)
+//             .enter()
+//             .append('tspan')
+//             .text(d => d)
+//             .attr('x', 0)
+//             .attr('dy', (d, i) => (i ? lh || 15 : -24));
+// };
+
 function wordwrap(line, maxCharactersPerLine) {
   const w = line.split(' ');
   const lines = [];
@@ -229,10 +240,86 @@ function _update(hypo = false, cumulated = false) {
   } = d3TimeSwitch(self.yDate);
   // yDate.domain([tickInterval.floor(startDate), tickInterval.offset(endDate, 1)]);
 
+  (function doselimiter() {
+    const [brushStartDate, brushEndDate] = self.yDate.domain();
+    const rangeData = self.data.filter(d => d.date >= brushStartDate && d.date <= brushEndDate);
+    const sum = d3.sum(rangeData, d => d.radiation);
+    const yearRange = d3.timeYear.count(brushStartDate, brushEndDate) + 1;
+    const tempDoseLimit = DOSELIMIT * yearRange;
+    console.log('tempDoseLimit', tempDoseLimit);
+    const text = ['Eye lens dose (mSv): ',
+      `${d3.format(',.2%')(sum / tempDoseLimit)} of yearly dose limit `];
+
+    d3.select('#doseLegend').selectAll('*').remove();
+    d3.select('#doseLegend')
+      .tspans(self.dim.width < 500 ? text : [text.join(' ')], self.dim.width < 500 ? smallerFontSize + 2 : (2 * smallerFontSize) + 1);
+
+    const sortedData = rangeData.sort((a, b) => new Date(a.date) - new Date(b.date));
+    console.log('sortedData', sortedData);
+
+    const rs = sortedData.reduce((acc, d) => {
+      if (acc.result) return acc;
+      if (acc.sum + d.radiation >= tempDoseLimit) {
+        return { sum: acc.sum + d.radiation, result: true, ret: d };
+      }
+      return { sum: acc.sum + d.radiation, result: false, ret: acc.ret };
+    }, { sum: 0, result: false, ret: brushEndDate });
+
+    console.log('rs', rs);
+    const threshold = rs.ret;
+
+    d3.select('.leftSideDose').selectAll('g').remove();
+    const leftSideDose = d3.select('.leftSideDose').selectAll('rect')
+      .data([threshold]);
+
+    leftSideDose.enter()
+      .insert('g', ':first-child')
+      .attr('transform', `translate(${self.brushScale(brushStartDate)},0)`)
+      .append('rect')
+      .attr('height', self.dim.brushHeight)
+      .attr('width', (d) => {
+        let endDate;
+        if (d.date < brushEndDate) {
+          console.log('red zone');
+          endDate = d.date;
+        } else {
+          endDate = brushEndDate;
+        }
+        const end = self.brushScale(endDate);
+        // console.log('brush < ', d.threshold ? d.threshold.date : brushEndDate);
+        const start = self.brushScale(brushStartDate);
+        return end - start;
+      })
+    .attr('fill', 'green')
+    .attr('opacity', 0.4);
+
+    d3.select('.rightSideDose').selectAll('g').remove();
+    const rightSideDose = d3.select('.rightSideDose').selectAll('rect')
+      .data([threshold]);
+
+    rightSideDose.enter()
+      .insert('g', ':first-child')
+    .attr('transform', d => `translate(${(self.brushScale(d.date) || 0)},${0})`)
+    .append('rect')
+    .attr('height', self.dim.brushHeight)
+    .attr('width', (d) => {
+      let end;
+      if (brushEndDate < d3.timeYear.ceil(d.date)) {
+        end = self.brushScale(brushEndDate) || 0;
+      } else {
+        end = self.brushScale(d3.timeYear.ceil(d.date)) || 0;
+      }
+      const start = self.brushScale(d.date) || 0;
+      return end - start;
+    })
+    .attr('fill', 'red')
+    .attr('opacity', 0.4);
+  }());
+
 
   const startDate = d3.timeDay.offset(self.yDate.domain()[0], -1);
   const endDate = d3.timeDay.offset(self.yDate.domain()[1], 1);
-  const nestedData = aggregate(self.data, nestInterval, intervalKey, startDate, endDate, cumulated);
+  const nestedData = aggregate(self.data.filter(d => d.date >= startDate && d.date <= endDate), nestInterval, intervalKey, startDate, endDate, cumulated);
   const dayData = aggregate(self.data, d3.timeDay, 'days', startDate, endDate, cumulated);
   // console.log('nested Data', nestedData);
   // console.log('day Data', dayData);
@@ -291,7 +378,7 @@ function _update(hypo = false, cumulated = false) {
       .call(radAxis);
 
     d3.select('.rad-axis').selectAll('.tick text')
-      .attr('font-size', 12)
+      .attr('font-size', self.dim.width < 500 ? smallerFontSize : 12)
       .style('text-anchor', 'middle')
       .attr('alignment-baseline', 'middle')
       .attr('dy', self.dim.legendHeight / 2)
@@ -451,7 +538,7 @@ function _update(hypo = false, cumulated = false) {
 
       gEnter
         .append('text')
-        .attr('font-size', 14)
+        .attr('font-size', self.dim.width < 500 ? smallerFontSize : 14)
         .tspans(d => wordwrap(timeFormat(d.date), 3))
         .attr('alignment-baseline', 'hanging');
 
@@ -502,7 +589,7 @@ function _update(hypo = false, cumulated = false) {
         .duration(delay)
         .attr('transform', function(d) {
           const bbox = this.getBBox();
-          return `translate(${0},${tickHeight(d.date) / 2 - bbox.height / 2})`;
+          return `translate(${0},${(tickHeight(d.date) / 2) - (bbox.height / 2)})`;
         });
     }());
 
@@ -664,17 +751,16 @@ function create(cumulated) {
   subCont.append('g')
     .attr('class', 'prot-axis')
   // .attr('transform', `translate(0,${0})`);
-    .attr('transform', `translate(0,${-10})`);
+    .attr('transform', `translate(0,${-8})`);
 
 
   (function createProtLegend() {
-    const iconWidth = (width / 2 - centerWidth / 2) / keys.length;
-    const r = 8;
+    const iconWidth = ((width / 2) - (centerWidth / 2)) / keys.length;
     const protData = keys.map(k => ({ key: k, selected: 0.5 }));
 
     const protLegend = svg.append('g')
     .attr('class', 'prot-legend')
-    .attr('transform', `translate(${width / 2 + centerWidth / 2},${brushHeight + brushMargin + outerMargin.top})`);
+    .attr('transform', `translate(${(width / 2) + (centerWidth / 2)},${brushHeight + brushMargin + outerMargin.top})`);
 
     protLegend.append('g')
       .attr('class', 'header')
@@ -685,15 +771,15 @@ function create(cumulated) {
       .attr('transform', (d, i) => `translate(${i * iconWidth},${0})`)
       .append('text')
       .text(d => d.key)
-      .attr('dy', -10)
+      .attr('dy', width < 500 ? -5 : -10)
       .attr('fill', '#000')
-      .attr('font-size', 15)
+      .attr('font-size', width < 500 ? smallerFontSize : 15)
       .attr('font-weight', 'bold');
 
     const margin = iconSize / 3;
     const shapePosScale = d3.scaleOrdinal()
-                                    .domain([0, 0.5, 1])
-                                    .range([margin, iconWidth / 2, iconWidth - margin]);
+                            .domain([0, 0.5, 1])
+                            .range([margin, iconWidth / 2, iconWidth - margin]);
 
     const protIcon = protLegend.selectAll('.prot-icon')
           .attr('width', iconWidth)
@@ -728,7 +814,7 @@ function create(cumulated) {
             self.setState({ data: newData });
 
             const radio = d3.select('#radio1').property('checked');
-            self.update(false, !radio);
+            self.update(true, !radio);
           });
           // .text(d => d.key);
 
@@ -790,11 +876,16 @@ function create(cumulated) {
     radLegend.append('text')
       .attr('dy', -10)
       // .attr('dx', width / 2 - centerWidth / 2)
-      // .attr('text-anchor', 'end')
+      // .attr('text-anchor', 'top')
       .attr('fill', '#000')
-      .attr('font-size', 15)
+      .attr('font-size', width < 500 ? smallerFontSize : 15)
       .attr('font-weight', 'bold')
-      .text('Eye lens dose (mSv)');
+        .attr('transform', `translate(${0}, ${width < 500 ? -20 : -8})`)
+      .attr('id', 'doseLegend');
+
+    // if (width < 500) {
+    //   radLegend.select('text')
+    // }
 
   // make quantized key legend items
     radLegend
@@ -864,53 +955,11 @@ function create(cumulated) {
     .attr('y2', brushHeight)
     .attr('x2', d => brushScale(d.date));
 
+    context.insert('g', ':first-child')
+      .attr('class', 'leftSideDose');
 
-    const dataByYear = d3.nest()
-      .key(d => formatTime(d3.timeYear(d.date)))
-      .entries(data);
-
-    const thresholdByYear = dataByYear.map((e) => {
-      e.threshold = e.values.reduce((acc, d) => {
-        if (acc.ret) return acc;
-        if (acc.sum + d.radiation >= DOSELIMIT) return { sum: acc.sum + d.radiation, ret: d };
-        return { sum: acc.sum + d.radiation, ret: null };
-      }, { sum: 0, ret: null }).ret;
-      return e;
-    });
-
-    console.log('threshold by year', thresholdByYear);
-    thresholdByYear.forEach((d, i) => {
-      if (d.threshold) {
-        d.threshold.pos = brushScale(d.threshold.date) - brushHandleSize;
-      }
-    });
-
-    // console.log('thresshold by year', thresholdByYear);
-    //
-    context.insert('g', ':first-child').selectAll('rect')
-      .data(thresholdByYear)
-      .enter()
-      .insert('g', ':first-child')
-    .attr('transform', d => `translate(${brushScale(d3.timeYear.floor(d.values[0].date))},0)`)
-      .append('rect')
-    .attr('height', brushHeight)
-    .attr('width', d => brushScale(d.threshold ? d.threshold.date : d3.timeYear.ceil(d.values[d.values.length - 1].date)) - brushScale(d3.timeYear.floor(d.values[0].date)))// d.threshold ? d.threshold.pos - brushScale(d.values[0].date) : 0)
-    .attr('fill', 'green')
-    .attr('opacity', 0.4);
-
-
-//
-    context.insert('g', ':first-child').selectAll('rect')
-      .data(thresholdByYear)
-      .enter()
-      .insert('g', ':first-child')
-    .attr('transform', d => d.threshold ? `translate(${brushScale(d.threshold.date)},${0})` : null)
-      .append('rect')
-    .attr('height', brushHeight)
-
-    .attr('width', d => d.threshold ? brushScale(d3.timeYear.ceil(d.threshold.date)) - brushScale(d.threshold.date) : 0)
-    .attr('fill', 'red')
-    .attr('opacity', 0.4);
+    context.insert('g', ':first-child')
+      .attr('class', 'rightSideDose');
 
 
     context.append('g')
@@ -918,13 +967,19 @@ function create(cumulated) {
     .attr('transform', `translate(0,${brushHeight})`)
     .call(d3.axisBottom(brushScale)
             .ticks(d3.timeMonth.every(1))
-            .tickFormat(d3.timeFormat('%b'))
+            .tickFormat((date) => {
+              if (d3.timeYear(date) < date) {
+                return d3.timeFormat('%b')(date);
+              }
+              return d3.timeFormat('%Y')(date);
+            })
     );
 
     context.selectAll('.axis text')  // select all the text elements for the xaxis
-          .attr('transform', function() {
-            return `translate(${this.getBBox().height * -1},${this.getBBox().height / 2})rotate(-45)`;
-          });
+      .attr('transform', function() {
+        return `translate(${this.getBBox().height * -1},${this.getBBox().height / 2})rotate(-45)`;
+      })
+      .attr('font-size', width < 500 ? 8 : null);
 
 
     const handle = gBrush.selectAll('.handle--custom')
@@ -950,6 +1005,7 @@ function create(cumulated) {
       const s = d3.event.selection || brushScale.range();
       const d0 = s.map(brushScale.invert, brushScale);
       yDate
+        .clamp(true)
         .domain(d0);
 
       self.setState({ data, yDate, brush, brushScale });

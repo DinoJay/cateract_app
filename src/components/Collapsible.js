@@ -207,7 +207,7 @@ export default class Collapsible extends React.Component {
 
                 </div>
                 <div className="modal-body">
-                  <img src={helpScreenSrc} className="img-fluid" alt="Responsive image" />
+                  <img src={helpScreenSrc} className="img-fluid container" alt="Responsive image" />
                 </div>
               </div>
             </div>
