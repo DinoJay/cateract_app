@@ -331,7 +331,7 @@ function _update(hypo = false, cumulated = false) {
     const dom = dayData
       .filter(e => d3.range(0, e.date.getTime() === d.date.getTime()))
       .reduce((acc, e) => (e.values.length > acc.values.length ? e : acc)).values;
-    const domRange = d3.range(0, self.data.length);
+    const domRange = d3.range(0, 12);
 
     d.yScale = d3.scaleBand()
             // TODO: fix hack
@@ -340,7 +340,7 @@ function _update(hypo = false, cumulated = false) {
             .range(range);// d3.scale.ordinal().rangeRoundBands([0, width], .05);
 
     d.bandwidth = d3.scaleBand()// TODO: fix hack
-            .domain(d3.range(0, 10))
+            .domain(d3.range(0, 5))
             .paddingInner(0.8)
             .range(range)
             .bandwidth();
