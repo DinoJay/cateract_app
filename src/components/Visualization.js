@@ -3,10 +3,11 @@ import React, { PropTypes } from 'react';
 
 import Vis from './vis';
 
+import rawRefData from '../refData.json';
+
 const timeFormatStr = '%d/%m/%Y %H:%M';
 const parseDate = d3.timeParse(timeFormatStr);
 
-import rawRefData from '../refData.json';
 
 const refData = rawRefData.map((d) => {
   d.shield = d.shield === 'Yes';
@@ -177,11 +178,9 @@ class Visualization extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log('PROPS', this.props);
     if (this.props.data.length !== prevProps.data.length) {
       VisObj.setState({ data: filterData(this.props.data, this.props) });
       VisObj.reset(this.props.cumulated);
-      console.log('reset');
     } else {
       const fd = filterData(this.props.data, this.props);
       if (fd.length > 0) {
@@ -202,11 +201,10 @@ class Visualization extends React.Component {
   render() {
     return (
       <div ref={c => (this.Vis = c)} >
-        <div className="jumbotron">
-          <h2 className="display-3">Hello, User!</h2>
-          <p className="lead">It seems that you open the app for the first time. Let me help you a bit!</p>
-          <hr className="my-4" />
-          <p>Click the <mark>context menu</mark> above to add your first bunch of procedures you want to analyze according to your radiation dose!</p>
+        <div className="container  h-100">
+          <h3 className="row justify-content-center align-self-center">
+      No Procedure Added!
+    </h3>
         </div>
       </div>
     );

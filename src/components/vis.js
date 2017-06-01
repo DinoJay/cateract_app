@@ -7,6 +7,9 @@ const smallerFontSize = 12;
 
 const delay = 900;
 
+const p = d3.precisionRound(0.01, 100);
+const formatNumber = d3.format(`.${p}r`);
+
 const paddingScale = d3.scaleOrdinal()
   .domain(['years', 'months', 'weeks', 'days', 'hours'])
   .range([16, 8, 2, 2, 7]);
@@ -247,7 +250,7 @@ function _update(hypo = false, cumulated = false) {
     const yearRange = d3.timeYear.count(brushStartDate, brushEndDate) + 1;
     const tempDoseLimit = DOSELIMIT * yearRange;
     console.log('tempDoseLimit', tempDoseLimit);
-    const text = ['Eye lens dose (mSv): ',
+    const text = [`Eye lens dose: ${formatNumber(sum)} (mSv), `,
       `${d3.format(',.2%')(sum / tempDoseLimit)} of yearly dose limit `];
 
     d3.select('#doseLegend').selectAll('*').remove();
@@ -926,7 +929,7 @@ function create(cumulated) {
       startDate = ext[0];
       endDate = ext[1];
     } else {
-      startDate = new Date();
+      startDate = d3.timeMonth.offset(new Date(), -1);
       endDate = d3.timeMonth.offset(new Date(), 1);
     }
 

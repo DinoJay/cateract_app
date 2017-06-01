@@ -194,3 +194,24 @@
   margin-bottom: 0px;
 }
 
+.bd-callout+.bd-callout {
+  margin-top: -.25rem;
+}
+.bd-callout-warning {
+  border-left-color: #d9534f !important;
+}
+
+.bd-callout-warning h4{
+  color: #d9534f;
+}
+
+.bd-callout {
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #eee;
+  border-left-width: .25rem;
+  border-radius: .25rem;
+}
+
+

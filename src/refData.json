@@ -1656,6 +1656,19 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.188,
+    "Protection level": 0,
+    "shieldLevel": 0,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "right",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "No",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
@@ -1669,12 +1682,25 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.077,
+    "Protection level": 0.59,
+    "shieldLevel": 0,
+    "glassesLevel": 0.59,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "right",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "Yes",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
     "shieldLevel": 0,
-    "glassesLevel": 0,
-    "cabinLevel": 1
+    "glassesLevel": 0.59,
+    "cabinLevel": 0.41
   },
   {
     "eye": "right",
@@ -1683,9 +1709,9 @@
     "shield": "Yes",
     "glasses": "No",
     "cabin": "No",
-    "radiation": 0.013,
-    "Protection level": 0,
-    "shieldLevel": 0,
+    "radiation": 0.038,
+    "Protection level": 0.8,
+    "shieldLevel": 0.8,
     "glassesLevel": 0,
     "cabinLevel": 0
   },
@@ -1698,9 +1724,22 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
+    "shieldLevel": 0.8,
     "glassesLevel": 0,
-    "cabinLevel": 1
+    "cabinLevel": 0.2
+  },
+  {
+    "eye": "right",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "Yes",
+    "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.016,
+    "Protection level": 0.92,
+    "shieldLevel": 0.41,
+    "glassesLevel": 0.51,
+    "cabinLevel": 0
   },
   {
     "eye": "right",
@@ -1711,8 +1750,8 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
-    "glassesLevel": 0,
+    "shieldLevel": 0.5,
+    "glassesLevel": 0.59,
     "cabinLevel": 1
   },
   {
@@ -1877,6 +1916,19 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.188,
+    "Protection level": 0,
+    "shieldLevel": 0,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "right",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "No",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
@@ -1890,12 +1942,51 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.077,
+    "Protection level": 0.59,
+    "shieldLevel": 0,
+    "glassesLevel": 0.59,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "right",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "Yes",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
     "shieldLevel": 0,
+    "glassesLevel": 0.59,
+    "cabinLevel": 0.41
+  },
+  {
+    "eye": "right",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "Yes",
+    "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.038,
+    "Protection level": 0.80,
+    "shieldLevel": 0,
     "glassesLevel": 0,
-    "cabinLevel": 1
+    "cabinLevel": 0
+  },
+  {
+    "eye": "right",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "Yes",
+    "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.016,
+    "Protection level": 0.92,
+    "shieldLevel": 0.6,
+    "glassesLevel": 0.32,
+    "cabinLevel": 0
   },
   {
     "eye": "right",
@@ -1919,9 +2010,22 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
+    "shieldLevel": 0.6,
+    "glassesLevel": 0.32,
+    "cabinLevel": 0.08
+  },
+  {
+    "eye": "right",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0,
+    "Protection level": 0.59,
     "shieldLevel": 0,
     "glassesLevel": 0,
-    "cabinLevel": 1
+    "cabinLevel": 0.59
   },
   {
     "eye": "right",
@@ -1972,6 +2076,19 @@
     "radiation": 0.049,
     "Protection level": 0.61,
     "shieldLevel": 0.61,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "right",
+    "procedure": "CTO",
+    "equipment": "Carm",
+    "shield": "No",
+    "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.069,
+    "Protection level": 0.51,
+    "shieldLevel": 0.51,
     "glassesLevel": 0,
     "cabinLevel": 0
   },
@@ -3723,6 +3840,19 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.345,
+    "Protection level": 0,
+    "shieldLevel": 0,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "No",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
@@ -3736,12 +3866,51 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.132,
+    "Protection level": 0.62,
+    "shieldLevel": 0,
+    "glassesLevel": 0.62,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "Yes",
+    "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.069,
+    "Protection level": 0.80,
+    "shieldLevel": 0.80,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "Yes",
+    "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.026,
+    "Protection level": 0.93,
+    "shieldLevel": 0.50,
+    "glassesLevel": 0.43,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "Valvuloplasty",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "Yes",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
     "shieldLevel": 0,
-    "glassesLevel": 0,
-    "cabinLevel": 1
+    "glassesLevel": 0.62,
+    "cabinLevel": 0.38
   },
   {
     "eye": "left",
@@ -3765,9 +3934,9 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
+    "shieldLevel": 0.8,
     "glassesLevel": 0,
-    "cabinLevel": 1
+    "cabinLevel": 0.2
   },
   {
     "eye": "left",
@@ -3778,9 +3947,9 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
-    "glassesLevel": 0,
-    "cabinLevel": 1
+    "shieldLevel": 0.5,
+    "glassesLevel": 0.32,
+    "cabinLevel": 0.18
   },
   {
     "eye": "left",
@@ -3944,12 +4113,38 @@
     "equipment": "BiPlane",
     "shield": "No",
     "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.345,
+    "Protection level": 0,
+    "shieldLevel": 0,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "No",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
     "shieldLevel": 0,
     "glassesLevel": 0,
     "cabinLevel": 1
+  },
+  {
+    "eye": "left",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "No",
+    "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.132,
+    "Protection level": 0.62,
+    "shieldLevel": 0,
+    "glassesLevel": 0,
+    "cabinLevel": 0.62
   },
   {
     "eye": "left",
@@ -3970,12 +4165,25 @@
     "equipment": "BiPlane",
     "shield": "Yes",
     "glasses": "No",
+    "cabin": "No",
+    "radiation": 0.069,
+    "Protection level": 0.7989,
+    "shieldLevel": 0.7989,
+    "glassesLevel": 0,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "CTO",
+    "equipment": "BiPlane",
+    "shield": "Yes",
+    "glasses": "No",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
+    "shieldLevel": 0.80,
     "glassesLevel": 0,
-    "cabinLevel": 1
+    "cabinLevel": 0.20
   },
   {
     "eye": "left",
@@ -3986,9 +4194,9 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
-    "glassesLevel": 0,
-    "cabinLevel": 1
+    "shieldLevel": 0.50,
+    "glassesLevel": 0.32,
+    "cabinLevel": 0.18
   },
   {
     "eye": "left",
@@ -4022,12 +4230,25 @@
     "equipment": "Carm",
     "shield": "No",
     "glasses": "Yes",
+    "cabin": "No",
+    "radiation": 0.076,
+    "Protection level": 0.60,
+    "shieldLevel": 0,
+    "glassesLevel": 0.60,
+    "cabinLevel": 0
+  },
+  {
+    "eye": "left",
+    "procedure": "CTO",
+    "equipment": "Carm",
+    "shield": "No",
+    "glasses": "Yes",
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
     "shieldLevel": 0,
-    "glassesLevel": 0,
-    "cabinLevel": 1
+    "glassesLevel": 0.60,
+    "cabinLevel": 0.4
   },
   {
     "eye": "left",
@@ -4051,9 +4272,9 @@
     "cabin": "Yes",
     "radiation": 0,
     "Protection level": 1,
-    "shieldLevel": 0,
+    "shieldLevel": 0.61,
     "glassesLevel": 0,
-    "cabinLevel": 1
+    "cabinLevel": 0.39
   },
   {
     "eye": "left",

@@ -14,6 +14,7 @@ import 'font-awesome/css/font-awesome.css';
 import './global_styles/app.scss';
 import Visualization from './components/Visualization';
 import Collapsible from './components/Collapsible';
+import Home from './components/Home';
 
 
 const timeFormatStr = '%d/%m/%Y %H:%M';
@@ -51,7 +52,8 @@ class App extends React.Component {
       eye: true,
       aggrSel: false,
       threshhold: 0.4,
-      timeBounds: [new Date(-8640000000000000), new Date()]
+      timeBounds: [new Date(-8640000000000000), new Date()],
+      home: data.length === 0
     };
   }
 
@@ -79,12 +81,12 @@ class App extends React.Component {
     const realData = this.state.data.concat(newData.map(preprocess))
       .sort((a, b) => a.date - b.date);
 
-    this.setState({ data: realData });
+    this.setState({ data: realData, home: realData.length === 0 });
   }
 
   _dataWipeHandler() {
     localStorage.setItem('dataHHH', JSON.stringify([]));
-    this.setState({ data: [] });
+    this.setState({ data: [], home: true });
   }
 
   _operationRemoveHandler(ids) {
@@ -108,6 +110,7 @@ class App extends React.Component {
       return newDate >= this.state.timeBounds[0] && newDate <= this.state.timeBounds[1];
     });
 
+
     return (
       <div>
         <Collapsible
@@ -117,8 +120,15 @@ class App extends React.Component {
           dataChangeHandler={this.dataChangeHandler}
           selectionHandler={this.selectionHandler}
           operationRemoveHandler={this.operationRemoveHandler}
+          homeHandler={() => this.setState({ home: !this.state.home })}
+          active={this.state.home}
         />
-        <Visualization timeChange={d => this.setState({ timeBounds: d })} {...this.state} />
+
+        {
+          this.state.home ? <Home /> : <Visualization
+            timeChange={d => this.setState({ timeBounds: d })} {...this.state}
+          />
+        }
       </div>
     );
   }

@@ -2,11 +2,32 @@ import React, { PropTypes } from 'react';
 import DatePicker from 'react-datepicker';
 import * as d3 from 'd3';
 
+import refData from '../refData.json';
+
 import moment from 'moment';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
 const formatTime = d3.timeFormat('%d/%m/%Y %H:%M');
+
+
+// const refData = rawRefData.map((d) => {
+//   d.shield = d.shield === 'Yes';
+//   d.glasses = d.glasses === 'Yes';
+//   d.cabin = d.cabin === 'Yes';
+//   return d;
+// });
+
+function getEntry(d, e) {
+  return (
+    d.equipment === e.equipment &&
+    d.procedure === e.procedure &&
+    d.shield === e.shield &&
+    d.glasses === e.glasses &&
+    d.cabin === e.cabin
+  );
+}
+
 
 const procedures = [
   'CA',
@@ -116,7 +137,6 @@ class OperationForm extends React.Component {
                   >
                     <option>BiPlane</option>
                     <option>Carm</option>
-                    <option>NotRot</option>
                   </select>
                 </div>
               </div>
@@ -185,7 +205,7 @@ class OperationForm extends React.Component {
             <div className="col-12">
               <div className="row justify-content-center">
                 <label htmlFor="lgFormGroupInput" className="col-form-label col-form-label-lg">
-                  Quantity
+                  Number
                 </label>
               </div>
               <div className="row justify-content-center">
@@ -304,6 +324,15 @@ export default class ProcedureForm extends React.Component {
   }
   // Add todo handler
   addOperation(op) {
+    console.log('OP', op.shield, op.cabin, op.glasses, 'refData', refData);
+    const refEntry = refData
+      .find(d => getEntry(op, d));
+
+    console.log('refEntry', refEntry);
+    if (!refEntry) {
+      alert('The selected configuration of procedure, equipment and protection is currently not in our database!');
+      return;
+    }
     // Assemble data
     op.id = this.state.data.length + 1;
     // Update data

@@ -31,7 +31,7 @@ export default class Collapsible extends React.Component {
   }
 
   _confirmWipeData() {
-    if (confirm('Are you sure that you want to wipe all your past procedure data?') === true) {
+    if (confirm('Are you sure that you want to erase all your past procedure data?') === true) {
       this.props.dataWipeHandler();
     }
   }
@@ -53,6 +53,31 @@ export default class Collapsible extends React.Component {
         <div >
           <nav className="navbar navbar-light bg-faded" >
             <span>
+
+              <a className="navbar-brand" href="#">
+                <img src={logoSrc} width="130" height="55" className="d-inline-block " alt="" />
+              </a>
+              <button
+                className="btn btn-sm"
+                data-toggle="modal"
+                style={{ marginRight: '5px' }}
+                onClick={() => this.props.homeHandler()}
+              >
+                <i
+                  className={`fa ${this.props.active ? 'fa-eye' : 'fa-home'} fa-2x`} aria-hidden="true"
+                />
+              </button>
+
+              <button
+                className="btn btn-sm"
+                data-toggle="modal"
+                data-target="#modal-help"
+              >
+                <i
+                  className="fa fa-question fa-2x" aria-hidden="true"
+                />
+              </button>
+
               <button
                 className="navbar-toggler navbar-toggler-right"
                 type="button"
@@ -68,20 +93,6 @@ export default class Collapsible extends React.Component {
                   className="navbar-toggler-icon tooltip-holder"
                 />
               </button>
-
-              <a className="navbar-brand" href="#">
-                <img src={logoSrc} width="100" height="30" className="d-inline-block " alt="" />
-              </a>
-              <button
-                className="btn btn-sm"
-                data-toggle="modal"
-                data-target="#modal-help"
-              >
-                <i
-                  className="fa fa-question fa-2x" aria-hidden="true"
-                />
-              </button>
-
             </span>
 
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
@@ -182,7 +193,7 @@ export default class Collapsible extends React.Component {
                       type="button" className="btn btn-danger"
                       onClick={this.confirmWipeData}
                     >
-                        Wipe all<br />Procedures
+                        Erase all<br />Procedures
                       </button>
                   </div>
                 </div>
@@ -277,5 +288,7 @@ Collapsible.propTypes = {
   selectionHandler: PropTypes.func,
   dataWipeHandler: PropTypes.func,
   operationRemoveHandler: PropTypes.func,
-  timeBounds: PropTypes.array
+  timeBounds: PropTypes.array,
+  homeHandler: PropTypes.func,
+  active: PropTypes.bool
 };
