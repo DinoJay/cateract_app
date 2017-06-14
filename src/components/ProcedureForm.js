@@ -1,15 +1,18 @@
 import React, { PropTypes } from 'react';
-import DatePicker from 'react-datepicker';
 import * as d3 from 'd3';
+import moment from 'moment';
+
+// import DatePicker from 'react-datepicker';
+// import 'react-datepicker/dist/react-datepicker.css';
+
 
 import refData from '../refData.json';
 
-import moment from 'moment';
-
-import 'react-datepicker/dist/react-datepicker.css';
-
 const formatTime = d3.timeFormat('%d/%m/%Y %H:%M');
 
+import DayPicker, { DateUtils } from 'react-day-picker';
+
+import 'react-day-picker/lib/style.css';
 
 // const refData = rawRefData.map((d) => {
 //   d.shield = d.shield === 'Yes';
@@ -86,19 +89,28 @@ class OperationForm extends React.Component {
     // Pass props to parent class
     super(props);
     // Set initial state
+    this.handleDayClick = this._handleDayClick.bind(this);
     this.state = {
       procedure: 'CA',
       equipment: 'Carm',
       glasses: false,
       shield: false,
       cabin: false,
-      startDate: moment(),
-      endDate: moment(),
+      from: new Date(),
+      to: new Date(),
       quantity: 1
     };
   }
 
+  _handleDayClick(day) {
+    const range = DateUtils.addDayToRange(day, this.state);
+    this.setState({ from: range.from, to: range.to });
+    console.log('range', range);
+  }
+
   render() {
+    const { from, to } = this.state;
+    // console.log('from', from, 'to', to.getDate());
     return (
       <div className="container">
         <div className="form-group">
@@ -179,26 +191,11 @@ class OperationForm extends React.Component {
                 Start / End Date
               </label>
               </div>
-              <div className="row">
-                <div className="datepicker btn-group-vertical btn-group-sm">
-                  <DatePicker
-                    customInput={<DateButton />}
-                    selected={this.state.startDate}
-                    selectsStart startDate={this.state.startDate}
-                    endDate={this.state.endDate}
-                    onChange={d => d.isSameOrBefore(this.state.endDate) && this.setState({ startDate: d })}
-                    dateFormat="DD/MM/YYYY"
-                    className="btn btn-secondary"
-                  />
-                  <DatePicker
-                    customInput={<DateButton />}
-                    selected={this.state.endDate}
-                    onChange={d => d.isSameOrAfter(this.state.startDate) && this.setState({ endDate: d })}
-                    selectsEnd startDate={this.state.startDate}
-                    endDate={this.state.endDate}
-                    dateFormat="DD/MM/YYYY"
-                  />
-                </div>
+              <div>
+                <DayPicker
+                  selectedDays={[from, { from, to }]}
+                  onDayClick={this.handleDayClick}
+                />
               </div>
             </div>
 
@@ -243,8 +240,8 @@ const Operation = ({ data, remove }) => (
     <td>{abbr(data.procedure)}</td>
     <td>{ data.equipment }</td>
     <td>
-      <div className="">{data.startDate.format('DD-MM-YY')}</div>
-      <div className="">{data.endDate.format('DD-MM-YY')}</div>
+      <div className="">{d3.timeFormat('%Y-%m-%d')(data.from)}</div>
+      <div className="">{d3.timeFormat('%Y-%m-%d')(data.to)}</div>
     </td>
     <td>
       <div className="btn-group btn-group-vertical">
@@ -322,7 +319,6 @@ export default class ProcedureForm extends React.Component {
       data: []
     };
   }
-  // Add todo handler
   addOperation(op) {
     console.log('OP', op.shield, op.cabin, op.glasses, 'refData', refData);
     const refEntry = refData
@@ -353,9 +349,9 @@ export default class ProcedureForm extends React.Component {
     const data = this.state.data.reduce((acc, d) => {
       const entries = [];
       while (entries.length < d.quantity) {
-        const minDate = d3.timeDay.offset(d.startDate.toDate(), -1);
-        const dayRange = d3.timeDay.range(minDate, d.endDate.toDate());
-        entries.push(...dayRange.reduce((acc2, date, i) => {
+        const minDate = d3.timeDay.offset(d.from, -1);
+        const dayRange = d3.timeDay.range(minDate, d.to);
+        entries.push(...dayRange.reduce((acc2, date) => {
           const newDate = new Date(date);
           const dateTimeStr = formatTime(newDate);
           if ((entries.length + acc2.length) < d.quantity) {

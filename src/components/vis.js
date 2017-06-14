@@ -7,7 +7,7 @@ const smallerFontSize = 12;
 
 const delay = 900;
 
-const p = d3.precisionRound(0.01, 100);
+const p = d3.precisionRound(0.1, 10);
 const formatNumber = d3.format(`.${p}r`);
 
 const paddingScale = d3.scaleOrdinal()

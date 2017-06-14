@@ -51,6 +51,9 @@ const griddleStyle = {
   }
 };
 
+function filter(arg) {
+  console.log('arg', arg);
+}
 const ProcedureGrid = props =>
   <div className="modal-body">
     <Griddle
@@ -63,7 +66,7 @@ const ProcedureGrid = props =>
         Layout
       }}
       events={{
-        onFilter: (filterText) => { console.log(this.state); }
+        onFilter: filter
       }}
     />
   </div>;

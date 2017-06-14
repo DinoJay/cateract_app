@@ -7,7 +7,7 @@ export default () => (
 
     <img src={logoSrc} className="d-inline-block " alt="" />
     <hr className="my-4" />
-    <p className="lead">Welcome to <strong>myEyeDose!</strong></p>
+    <p className="lead">Welcome to <strong>mEyeDose!</strong></p>
     <p>
           Track, calculate and learn how to optimise the radiation dose to your eye lens. <br />
           Click the <mark>context menu</mark> above to start adding your cardiac procedures.
