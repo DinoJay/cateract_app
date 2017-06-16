@@ -20,7 +20,38 @@ TableHeading.propTypes = {
   remove: PropTypes.func
 };
 
-const Layout = ({ Table, Pagination, Filter }) => (
+  // '',
+  // 'CA + PCI (PTCA)',
+  // 'PM implantation',
+  // 'PM resynchronisation',
+  // 'RF catheter ablation',
+  // 'PVI',
+  // 'Valvuloplasty',
+  // 'CTO'
+class Filter extends React.Component {
+  onChange(e) {
+    console.log('target-value', e.target.value);
+    const result = this.props.setFilter(e.target.value);
+    console.log('result', result);
+  }
+
+  render() {
+    return (
+      <select className={this.props.className} id="equipment" onChange={this.onChange.bind(this)}>
+        <option value="">All</option>
+        <option value="CA">CA</option>
+        <option value="CA + PCI (PTCA)">CA + PCI (PTCA)</option>
+        <option value="PM resynchronisation">PM resynchronisation</option>
+        <option value="RF catheter ablation">RF catheter ablation</option>
+        <option value="PVI">PVI</option>
+        <option value="PM implantation">PM implantation</option>
+        <option value="CTO">CTO</option>
+      </select>
+    );
+  }
+}
+
+const Layout = ({ Filter, Table, Pagination }) => (
   <div>
     <Filter />
     <Table />
@@ -51,22 +82,24 @@ const griddleStyle = {
   }
 };
 
-function filter(arg) {
-  console.log('arg', arg);
-}
 const ProcedureGrid = props =>
   <div className="modal-body">
     <Griddle
       styleConfig={griddleStyle}
-      data={props.data}
+      data={props.data.map((d) => {
+        if (d.initProtSel.glasses) { d.glass = 'glass'; }
+        if (d.initProtSel.shield) {
+          d.shield = 'shield';
+        }
+        if (d.initProtSel.cabin) { d.cabin = 'cabin'; }
+        return d;
+      })}
       plugins={[plugins.LocalPlugin]}
       components={{
         Row: Operation(props.operationRemove),
         TableHeading,
-        Layout
-      }}
-      events={{
-        onFilter: filter
+        Layout,
+        Filter
       }}
     />
   </div>;

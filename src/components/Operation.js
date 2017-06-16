@@ -68,6 +68,7 @@ const Operation = remove => connect((state, props) => ({
         }
         { !rowData.initProtSel.glasses && !rowData.initProtSel.shield && !rowData.initProtSel.cabin
           && <p><strong>No </strong></p> }
+        {rowData.glass}
       </div>
     </td>
     <td>
