@@ -4,7 +4,7 @@
   "description": "React Webpack Babel Starter Kit",
   "main": "''",
   "scripts": {
-    "build": "webpack --config webpack.production.config.js --progress --profile --colors && cd cordova && cordova run android",
+    "build": "webpack --config webpack.production.config.js --progress --profile --colors",
     "build-apple": "webpack --config webpack.production.config.js --progress --profile --colors && cd cordova && cordova run ios",
     "webBuild": "webpack",
     "start": "webpack-dev-server --progress --profile --colors --host 0.0.0.0",

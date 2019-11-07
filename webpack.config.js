@@ -45,10 +45,10 @@ loaders.push({
   ]
 });
 
-loaders.push({
-  test: /cordova(\.js)?$/,
-  loader: 'script-loader'
-});
+// loaders.push({
+//   test: /cordova(\.js)?$/,
+//   loader: 'script-loader'
+// });
 
 
 // local css modules
@@ -75,14 +75,21 @@ module.exports = {
   //   cordova: path.join(__dirname, '/cordova/platforms/browser/platform_www/cordova.js')
   // },
   resolve: {
-    extensions: ['', '.js', '.jsx'],
-    alias: {
-      cordova: path.join(__dirname, 'cordova/platforms/browser/platform_www/cordova.js')
-    }
+    extensions: ['', '.js', '.jsx']
+    // alias: {
+    //   cordova: path.join(__dirname, 'cordova/platforms/browser/platform_www/cordova.js')
+    // }
   },
+
   module: {
     loaders
+
   },
+  node: {
+    child_process: 'empty',
+    fs: 'empty'
+  },
+
   devServer: {
     contentBase: './cordova/platforms/browser/platform_www/',
     // do not print bundle build stats

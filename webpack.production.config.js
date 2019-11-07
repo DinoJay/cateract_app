@@ -1,4 +1,3 @@
-
 const webpack = require('webpack');
 const path = require('path');
 const loaders = require('./webpack.loaders');
@@ -11,26 +10,16 @@ loaders.push({
   test: /\.css$/,
   exclude: /[\/\\]src[\/\\]/,
   // include: /[\/\\](globalStyles)[\/\\]/,
-  loaders: [
-    'style?sourceMap',
-    'css'
-  ]
+  loaders: ['style?sourceMap', 'css']
 });
 
-
 // global scss
-loaders.push(
-  {
-    test: /\.scss$/,
+loaders.push({
+  test: /\.scss$/,
   // exclude: /[\/\\]src[\/\\]/,
-    include: /[\/\\](global_styles)[\/\\]/,
-    loaders: [
-      'style?sourceMap',
-      'css',
-      'sass'
-    ]
-  }
-);
+  include: /[\/\\](global_styles)[\/\\]/,
+  loaders: ['style?sourceMap', 'css', 'sass']
+});
 
 // local scss modules
 loaders.push({
@@ -45,29 +34,32 @@ loaders.push({
   ]
 });
 
-loaders.push({
-  test: /cordova(\.js)?$/,
-  loader: 'script-loader'
-});
-
+// loaders.push({
+//   loader: 'script-loader'
+// });
 
 module.exports = {
   entry: [
     './src/index.js' // your app's entry point
   ],
   output: {
-    path: path.join(__dirname, 'cordova/www'),
+    path: path.join(__dirname, 'cordova/platforms/browser/platform_www/'),
     filename: '[chunkhash].js'
   },
   resolve: {
-    extensions: ['', '.js', '.jsx'],
-    alias: {
-      cordova: path.join(__dirname, 'cordova/platforms/android/platform_www/cordova.js')
-    }
+    extensions: ['', '.js', '.jsx']
+    // alias: {
+    // }
   },
   module: {
     loaders
   },
+
+  node: {
+    child_process: 'empty',
+    fs: 'empty'
+  },
+
   plugins: [
     // new WebpackCleanupPlugin(),
     new webpack.DefinePlugin({
@@ -88,7 +80,7 @@ module.exports = {
       allChunks: true
     }),
     new HtmlWebpackPlugin({
-      template: './cordova/template.html',
+      template: './template.html',
       title: 'EyeRad'
     }),
     new webpack.optimize.DedupePlugin()
