@@ -255,7 +255,7 @@ function _update(hypo = false, cumulated = false) {
 
     d3.select('#doseLegend').selectAll('*').remove();
     d3.select('#doseLegend')
-      .tspans(self.dim.width < 500 ? text : [text.join(' ')], self.dim.width < 500 ? smallerFontSize + 2 : (2 * smallerFontSize) + 1);
+      .tspans(self.dim.width < 599 ? text : [text.join(' ')], self.dim.width < 500 ? smallerFontSize + 2 : (2 * smallerFontSize) + 1);
 
     const sortedData = rangeData.sort((a, b) => new Date(a.date) - new Date(b.date));
     console.log('sortedData', sortedData);
